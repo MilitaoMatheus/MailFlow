@@ -1,6 +1,6 @@
 # ✉️ MailFlow - Sistema de Gerenciamento e Envio de E-mails/Newsletters
 
-> Plataforma multiusuário, modular, segura e escalável para gerenciamento de contatos, criação de templates particionados (Header, Body, Footer), configuração individual de contas de e-mail/SMTP com criptografia e disparo de campanhas com relatórios analíticos de entrega.
+> Plataforma multiusuário, modular, segura e escalável para gerenciamento de contatos, criação de templates particionados (Header, Body, Footer), configuração individual de contas de e-mail/SMTP com criptografia, suporte a anexos múltiplos (PDF, Word, imagens) e disparo de campanhas com relatórios analíticos de entrega.
 
 ---
 
@@ -67,7 +67,7 @@ A aplicação segue a separação em 4 camadas fundamentais:
 - Cadastro, edição, exclusão e alternância de status (Ativar/Desativar).
 - Validação sintática rigorosa de e-mails no cadastro e pré-disparo (RFC 5322).
 - Estados de contato: `ATIVO`, `INATIVO`, `INVALIDO`, `DESCADASTRADO`.
-- **Importação CSV**: Detecção automática de delimitadores (`,` ou `;`), mapeamento flexível de colunas, validação e deduplicação automática com relatório.
+- **Importação CSV**: Detecção automática de delimitadores (`,` ou ';'), mapeamento flexível de colunas, validação e deduplicação automática com relatório.
 - **Exportação CSV**: Download da base completa de contatos do perfil.
 
 ### 🎨 3.4 Templates Particionados & Variáveis Dinâmicas
@@ -84,14 +84,18 @@ A aplicação segue a separação em 4 camadas fundamentais:
   - `{{link_descadastro}}`: Link exclusivo de descadastro com token seguro.
 - **Pré-visualização Interativa**: Modal com iframe renderizando o template formatado com dados de exemplo.
 
-### 📢 3.5 Campanhas e Disparo Tolerante a Falhas
+### 📢 3.5 Campanhas, Anexos & Disparo Tolerante a Falhas
 - Criação de campanhas com seleção de template e público (todos os contatos ativos ou seleção personalizada).
+- **Suporte a Anexos Múltiplos**:
+  - Upload direto de arquivos (PDF, Word DOC/DOCX, Imagens PNG/JPG/JPEG, Texto TXT) de até **5MB por arquivo** durante a criação da campanha.
+  - Armazenamento em diretório local do servidor (`uploads/`) isolado por usuário, salvando apenas metadados no banco de dados. Os anexos são excluídos automaticamente se a criação da campanha for cancelada ou se ela for deletada.
+  - Envio estruturado através do protocolo SMTP em formato `mixed` multipart.
 - **Envio Resiliente por Lote**:
   - A falha no envio para um destinatário **não interrompe** o disparo dos demais contatos da campanha.
   - Registro individual do resultado de cada destinatário (`ENVIADO`, `FALHA`, `INVALIDO`, `IGNORADO`) com a causa do erro.
 - **Relatório Analítico Pós-Campanha**:
   - Total de destinatários, enviados com sucesso, falhas, inválidos, ignorados e taxa de sucesso percentual (%).
-  - Tabela detalhada de cada disparo individual.
+  - Tabela detalhada de cada disparo individual e exibição da lista de anexos vinculados.
 
 ### 🛑 3.6 Descadastro Automático (*Opt-Out*)
 - Todo e-mail gerado inclui link dinâmico de descadastro com token seguro de 32 bytes (`/unsubscribe?token=...`).
@@ -107,7 +111,7 @@ A aplicação segue a separação em 4 camadas fundamentais:
 
 ### 1. Clonar ou Acessar a Pasta do Projeto
 ```bash
-cd newsletter-system
+cd MailFlow
 ```
 
 ### 2. Criar e Ativar Ambiente Virtual (Opcional, mas Recomendado)
@@ -127,7 +131,7 @@ pip install -r requirements.txt
 ```
 
 ### 4. Configurar Variáveis de Ambiente
-Copie o arquivo de exemplo e ajuste se necessário:
+Copie o arquivo de exemplo e ajuste se necessário (o banco SQLite será criado automaticamente):
 ```bash
 cp .env.example .env
 ```
@@ -180,6 +184,7 @@ python -m pytest -v
 - `tests/test_templates.py`: Montagem de blocos Header/Body/Footer e substituição de tags `{{nome}}`, `{{link_descadastro}}`, etc.
 - `tests/test_campaigns.py`: Execução de campanhas por lote com tolerância a falhas (sucesso, falha SMTP simulada, descadastrado) e cálculo de métricas.
 - `tests/test_unsubscribe.py`: Descadastro via token público, alteração para `DESCADASTRADO` e bloqueio de novos envios.
+- `tests/test_attachments.py`: Upload, armazenamento de relacionamentos de anexos e repasse de arquivos para o disparo via multipart MIME.
 - `tests/test_web_integration.py`: Jornada web completa e proteção de rotas HTTP contra acessos cruzados.
 
 ---
