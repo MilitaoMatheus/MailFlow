@@ -23,6 +23,17 @@
                 </div>
                 <p class="text-xs text-slate-500 font-medium">Assunto: <strong class="text-slate-700">{{ report.campaign.subject }}</strong></p>
                 <p class="text-[11px] text-slate-400">Data de Envio: {{ report.sent_at }}</p>
+                {% if report.campaign.attachments %}
+                <div class="mt-2 flex flex-wrap gap-1.5 items-center">
+                    <span class="text-[10px] uppercase font-bold text-slate-400">Anexos:</span>
+                    {% for att in report.campaign.attachments %}
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-[10px] font-mono text-slate-600" title="{{ att.file_name }}">
+                        <i data-lucide="paperclip" class="w-3 h-3 text-indigo-500"></i>
+                        {{ att.file_name }}
+                    </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
 
             <!-- Botões de Ação -->
@@ -161,6 +172,9 @@
                     <p>• <strong>Campanha:</strong> {{ report.campaign.name }}</p>
                     <p>• <strong>Assunto:</strong> {{ report.campaign.subject }}</p>
                     <p>• <strong>Remetente SMTP:</strong> {{ smtp_account.sender_name if smtp_account else 'Não configurado' }} ({{ smtp_account.email if smtp_account else '-' }})</p>
+                    {% if report.campaign.attachments %}
+                    <p>• <strong>Anexos:</strong> {{ report.campaign.attachments|length }} arquivo(s)</p>
+                    {% endif %}
                 </div>
             </div>
             <div class="flex items-center gap-3 pt-2">

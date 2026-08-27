@@ -77,26 +77,48 @@ class SmtpEmailProvider(BaseEmailProvider):
         subject: str,
         html_content: str,
         text_content: Optional[str] = None,
-        unsubscribe_url: Optional[str] = None
+        unsubscribe_url: Optional[str] = None,
+        attachments: Optional[list] = None
     ) -> EmailSendResult:
         """Cria a mensagem MIME e envia via SMTP."""
-        try:
-            msg = MIMEMultipart("alternative")
-            msg["Subject"] = subject
-            msg["From"] = formataddr((self.sender_name, self.sender_email))
-            msg["To"] = formataddr((to_name, to_email))
-            msg["Date"] = formatdate(localtime=True)
-            msg_id = make_msgid()
-            msg["Message-ID"] = msg_id
+        import os
+        from email.mime.application import MIMEApplication
 
-            # Header para descadastro compatível com RFC 2369 / RFC 8058
-            if unsubscribe_url:
-                msg["List-Unsubscribe"] = f"<{unsubscribe_url}>"
-                msg["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
+        try:
+            msg_id = make_msgid()
+            
+            # Se houver anexos, usamos mixed como container principal
+            if attachments:
+                outer_msg = MIMEMultipart("mixed")
+                outer_msg["Subject"] = subject
+                outer_msg["From"] = formataddr((self.sender_name, self.sender_email))
+                outer_msg["To"] = formataddr((to_name, to_email))
+                outer_msg["Date"] = formatdate(localtime=True)
+                outer_msg["Message-ID"] = msg_id
+                
+                if unsubscribe_url:
+                    outer_msg["List-Unsubscribe"] = f"<{unsubscribe_url}>"
+                    outer_msg["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
+                
+                # Container alternative para o texto e html
+                msg = MIMEMultipart("alternative")
+                outer_msg.attach(msg)
+            else:
+                msg = MIMEMultipart("alternative")
+                msg["Subject"] = subject
+                msg["From"] = formataddr((self.sender_name, self.sender_email))
+                msg["To"] = formataddr((to_name, to_email))
+                msg["Date"] = formatdate(localtime=True)
+                msg["Message-ID"] = msg_id
+                
+                if unsubscribe_url:
+                    msg["List-Unsubscribe"] = f"<{unsubscribe_url}>"
+                    msg["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
+                
+                outer_msg = msg
 
             # Versão em texto puro (fallback)
             if not text_content:
-                # Gerar fallback simples removendo tags básicas se necessário
                 text_content = f"{subject}\n\nPara visualizar o conteúdo completo, utilize um leitor compatível com HTML."
 
             part_text = MIMEText(text_content, "plain", "utf-8")
@@ -105,8 +127,19 @@ class SmtpEmailProvider(BaseEmailProvider):
             msg.attach(part_text)
             msg.attach(part_html)
 
+            # Anexar arquivos físicos ao container principal (mixed)
+            if attachments:
+                for att in attachments:
+                    path = att.get("path")
+                    name = att.get("name")
+                    if path and os.path.exists(path):
+                        with open(path, "rb") as f:
+                            part_att = MIMEApplication(f.read(), Name=name)
+                        part_att['Content-Disposition'] = f'attachment; filename="{name}"'
+                        outer_msg.attach(part_att)
+
             server = self._get_connection()
-            server.sendmail(self.sender_email, [to_email], msg.as_string())
+            server.sendmail(self.sender_email, [to_email], outer_msg.as_string())
             server.quit()
 
             return EmailSendResult(

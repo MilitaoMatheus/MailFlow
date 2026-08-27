@@ -78,7 +78,8 @@ class CampaignService:
         name: str,
         subject: str,
         template_id: int,
-        contact_ids: Optional[List[int]] = None
+        contact_ids: Optional[List[int]] = None,
+        attachments_meta: Optional[List[Dict[str, str]]] = None
     ) -> Tuple[bool, str, Optional[Campaign]]:
         """Cria uma nova campanha com validação de template e contatos do perfil."""
         name_clean = name.strip() if name else ""
@@ -107,7 +108,8 @@ class CampaignService:
             name=name_clean,
             subject=subject_clean,
             template_id=template.id,
-            contacts=contacts
+            contacts=contacts,
+            attachments_meta=attachments_meta
         )
 
         self.log_repo.create_log(
@@ -148,6 +150,16 @@ class CampaignService:
         # Atualizar status para PROCESSANDO
         campaign.status = CampaignStatus.PROCESSANDO
         self.db.commit()
+
+        # Obter lista de anexos da campanha
+        attachments_list = []
+        if campaign.attachments:
+            for att in campaign.attachments:
+                attachments_list.append({
+                    "path": att.file_path,
+                    "name": att.file_name,
+                    "type": att.content_type
+                })
 
         recipients = self.campaign_repo.get_campaign_recipients(campaign_id)
         
@@ -218,7 +230,8 @@ class CampaignService:
                 to_name=r.name,
                 subject=campaign.subject,
                 html_content=html_body,
-                unsubscribe_url=unsubscribe_url
+                unsubscribe_url=unsubscribe_url,
+                attachments=attachments_list
             )
 
             if send_res.success:

@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from sqlalchemy import desc, func
 from app.repositories.base import BaseRepository
 from app.models.campaign import Campaign, CampaignContact, CampaignStatus, CampaignContactStatus
+from app.models.campaign_attachment import CampaignAttachment
 from app.models.contact import Contact
 
 
@@ -35,7 +36,8 @@ class CampaignRepository(BaseRepository):
         name: str,
         subject: str,
         template_id: Optional[int],
-        contacts: List[Contact]
+        contacts: List[Contact],
+        attachments_meta: Optional[List[Dict[str, str]]] = None
     ) -> Campaign:
         """Cria campanha e associa a lista inicial de destinatários."""
         campaign = Campaign(
@@ -63,6 +65,17 @@ class CampaignRepository(BaseRepository):
                 status=CampaignContactStatus.PENDENTE
             )
             self.db.add(cc)
+
+        # Criar os registros de anexos
+        if attachments_meta:
+            for att in attachments_meta:
+                ca = CampaignAttachment(
+                    campaign_id=campaign.id,
+                    file_path=att["file_path"],
+                    file_name=att["file_name"],
+                    content_type=att["content_type"]
+                )
+                self.db.add(ca)
 
         self.db.commit()
         self.db.refresh(campaign)

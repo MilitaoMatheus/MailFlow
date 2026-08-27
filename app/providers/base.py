@@ -27,7 +27,8 @@ class BaseEmailProvider(ABC):
         subject: str,
         html_content: str,
         text_content: Optional[str] = None,
-        unsubscribe_url: Optional[str] = None
+        unsubscribe_url: Optional[str] = None,
+        attachments: Optional[list] = None
     ) -> EmailSendResult:
         """Envia um e-mail individual para o destinatário."""
         pass

@@ -37,7 +37,8 @@ class MockEmailProvider(BaseEmailProvider):
         subject: str,
         html_content: str,
         text_content: Optional[str] = None,
-        unsubscribe_url: Optional[str] = None
+        unsubscribe_url: Optional[str] = None,
+        attachments: Optional[list] = None
     ) -> EmailSendResult:
         domain = to_email.split("@")[-1].lower() if "@" in to_email else ""
 
@@ -58,6 +59,7 @@ class MockEmailProvider(BaseEmailProvider):
             "html_content": html_content,
             "text_content": text_content,
             "unsubscribe_url": unsubscribe_url,
+            "attachments": attachments,
             "message_id": msg_id
         }
         self.sent_emails.append(record)

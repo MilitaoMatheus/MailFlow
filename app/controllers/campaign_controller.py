@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Request, Depends, Form, status
+from fastapi import APIRouter, Request, Depends, Form, status, File, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -69,28 +69,107 @@ def new_campaign_form(
 
 
 @router.post("/new", response_class=HTMLResponse)
-def create_campaign(
+async def create_campaign(
     request: Request,
     name: str = Form(...),
     subject: str = Form(...),
     template_id: int = Form(...),
     recipient_type: str = Form("all"),
     selected_contacts: List[int] = Form(None),
+    files: List[UploadFile] = File(None),
     current_user: User = Depends(require_auth_user),
     db: Session = Depends(get_db)
 ):
+    import os
+    import shutil
+    import uuid
+
     campaign_service = CampaignService(db)
     contact_ids = None if recipient_type == "all" else selected_contacts
+
+    # Processamento e validação dos anexos
+    attachments_meta = []
+    allowed_extensions = {".pdf", ".doc", ".docx", ".png", ".jpg", ".jpeg", ".txt"}
+    max_file_size = 5 * 1024 * 1024  # 5MB
+
+    if files:
+        for f in files:
+            # Pular arquivos vazios (ocorre em envios sem arquivo no formulário HTML)
+            if not f.filename:
+                continue
+
+            # Validar extensão
+            _, ext = os.path.splitext(f.filename.lower())
+            if ext not in allowed_extensions:
+                template_service = TemplateService(db)
+                contact_service = ContactService(db)
+                email_service = EmailService(db)
+                return templates.TemplateResponse(
+                    request=request,
+                    name="campaigns/form.html",
+                    context={
+                        "user": current_user,
+                        "templates": template_service.list_templates(current_user.id),
+                        "contacts": contact_service.contact_repo.get_all_active_contacts(current_user.id),
+                        "smtp_account": email_service.get_smtp_account(current_user.id),
+                        "error": f"Extensão do arquivo '{f.filename}' não permitida. Use apenas PDF, Word ou Imagens.",
+                        "active_menu": "campaigns"
+                    },
+                    status_code=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Criar pasta física 'uploads' no diretório raiz do projeto
+            upload_dir = settings.BASE_DIR / "uploads" / f"campaign_user_{current_user.id}"
+            upload_dir.mkdir(parents=True, exist_ok=True)
+
+            # Gerar nome único e salvar arquivo
+            unique_filename = f"{uuid.uuid4().hex}_{f.filename}"
+            dest_path = upload_dir / unique_filename
+
+            # Ler conteúdo para verificar tamanho
+            content = await f.read()
+            if len(content) > max_file_size:
+                template_service = TemplateService(db)
+                contact_service = ContactService(db)
+                email_service = EmailService(db)
+                return templates.TemplateResponse(
+                    request=request,
+                    name="campaigns/form.html",
+                    context={
+                        "user": current_user,
+                        "templates": template_service.list_templates(current_user.id),
+                        "contacts": contact_service.contact_repo.get_all_active_contacts(current_user.id),
+                        "smtp_account": email_service.get_smtp_account(current_user.id),
+                        "error": f"O arquivo '{f.filename}' excede o tamanho limite de 5MB.",
+                        "active_menu": "campaigns"
+                    },
+                    status_code=status.HTTP_400_BAD_REQUEST
+                )
+
+            with open(dest_path, "wb") as buffer:
+                buffer.write(content)
+
+            attachments_meta.append({
+                "file_path": str(dest_path),
+                "file_name": f.filename,
+                "content_type": f.content_type or "application/octet-stream"
+            })
 
     success, msg, campaign = campaign_service.create_campaign(
         user_id=current_user.id,
         name=name,
         subject=subject,
         template_id=template_id,
-        contact_ids=contact_ids
+        contact_ids=contact_ids,
+        attachments_meta=attachments_meta
     )
 
     if not success or not campaign:
+        # Remover arquivos salvos em caso de falha de validação da campanha
+        for att in attachments_meta:
+            if os.path.exists(att["file_path"]):
+                os.remove(att["file_path"])
+
         template_service = TemplateService(db)
         contact_service = ContactService(db)
         email_service = EmailService(db)

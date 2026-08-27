@@ -62,3 +62,6 @@ logs/
 *~
 .DS_Store
 Thumbs.db
+
+# Pasta de upload de anexos de campanhas
+uploads/

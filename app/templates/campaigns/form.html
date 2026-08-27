@@ -38,7 +38,7 @@
         </div>
         {% endif %}
 
-        <form method="POST" action="/campaigns/new" class="space-y-6">
+        <form method="POST" action="/campaigns/new" enctype="multipart/form-data" class="space-y-6">
             <!-- Dados da Campanha -->
             <div class="space-y-4">
                 <div>
@@ -112,6 +112,18 @@
                     {% else %}
                     <p class="text-xs text-slate-400 text-center py-4">Nenhum contato ativo encontrado.</p>
                     {% endfor %}
+                </div>
+            </div>
+
+            <!-- Upload de Anexos -->
+            <div class="space-y-2 pt-2 border-t border-slate-100">
+                <label for="files" class="block text-xs font-semibold uppercase tracking-wider text-slate-700">Anexar Arquivos (Opcional)</label>
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                    <input type="file" id="files" name="files" multiple accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.txt"
+                        class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    <p class="text-[11px] text-slate-400">
+                        Formatos aceitos: <strong>PDF, Word (DOC, DOCX), Imagens (PNG, JPG, JPEG) e Texto (TXT)</strong>. Limite de 5MB por arquivo.
+                    </p>
                 </div>
             </div>
 

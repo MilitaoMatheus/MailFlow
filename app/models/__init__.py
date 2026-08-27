@@ -3,6 +3,7 @@ from app.models.email_account import EmailAccount, SmtpSecurity
 from app.models.contact import Contact, ContactStatus, generate_unsubscribe_token
 from app.models.template import Template
 from app.models.campaign import Campaign, CampaignContact, CampaignStatus, CampaignContactStatus
+from app.models.campaign_attachment import CampaignAttachment
 from app.models.activity_log import ActivityLog
 
 __all__ = [
@@ -18,5 +19,6 @@ __all__ = [
     "CampaignContact",
     "CampaignStatus",
     "CampaignContactStatus",
+    "CampaignAttachment",
     "ActivityLog",
 ]

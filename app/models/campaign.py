@@ -42,6 +42,7 @@ class Campaign(Base):
     user = relationship("User", back_populates="campaigns")
     template = relationship("Template", back_populates="campaigns")
     recipients = relationship("CampaignContact", back_populates="campaign", cascade="all, delete-orphan")
+    attachments = relationship("CampaignAttachment", back_populates="campaign", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Campaign id={self.id} user_id={self.user_id} name={self.name} status={self.status}>"
