@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Login - MailFlow{% endblock %}
+
+{% block public_content %}
+<div class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-8 space-y-6">
+    <div class="text-center space-y-2">
+        <div class="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center mx-auto shadow-lg shadow-indigo-500/30">
+            <i data-lucide="mail" class="w-6 h-6"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Acesse sua conta</h2>
+        <p class="text-sm text-slate-500">Insira suas credenciais para gerenciar suas newsletters</p>
+    </div>
+
+    {% if error %}
+    <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-3">
+        <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0"></i>
+        <span>{{ error }}</span>
+    </div>
+    {% endif %}
+
+    <form method="POST" action="/login" class="space-y-4">
+        <div>
+            <label for="email" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">E-mail de Acesso</label>
+            <div class="relative">
+                <i data-lucide="at-sign" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400"></i>
+                <input type="email" id="email" name="email" value="{{ email or '' }}" required autofocus
+                    placeholder="seu.email@empresa.com"
+                    class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+            </div>
+        </div>
+
+        <div>
+            <div class="flex items-center justify-between mb-1.5">
+                <label for="password" class="block text-xs font-semibold uppercase tracking-wider text-slate-700">Senha</label>
+            </div>
+            <div class="relative">
+                <i data-lucide="lock" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400"></i>
+                <input type="password" id="password" name="password" required
+                    placeholder="••••••••"
+                    class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+            </div>
+        </div>
+
+        <button type="submit"
+            class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm shadow-md shadow-indigo-600/30 transition flex items-center justify-center gap-2">
+            <span>Entrar no Sistema</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+    </form>
+
+    <div class="text-center pt-4 border-t border-slate-100 text-xs text-slate-500">
+        Não possui um perfil?
+        <a href="/register" class="text-indigo-600 font-semibold hover:underline">Cadastre-se gratuitamente</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block page_title %}Campanhas de E-mail{% endblock %}
+{% block page_subtitle %}Criação, disparo e relatórios analíticos de envio.{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Top Action Bar -->
+    <div class="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+        <div class="flex items-center gap-3">
+            <span class="text-xs font-semibold text-slate-500">Total de Campanhas:</span>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700">{{ total_count }}</span>
+        </div>
+        <a href="/campaigns/new" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+            Nova Campanha
+        </a>
+    </div>
+
+    <!-- Tabela de Campanhas -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100 uppercase tracking-wider text-[11px]">
+                    <tr>
+                        <th class="py-3.5 px-4">Nome da Campanha</th>
+                        <th class="py-3.5 px-4">Assunto</th>
+                        <th class="py-3.5 px-4">Destinatários</th>
+                        <th class="py-3.5 px-4">Status</th>
+                        <th class="py-3.5 px-4">Criação</th>
+                        <th class="py-3.5 px-4 text-right">Ação</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                    {% for camp in campaigns %}
+                    <tr class="hover:bg-slate-50/60 transition">
+                        <td class="py-3.5 px-4 font-semibold text-slate-900">{{ camp.name }}</td>
+                        <td class="py-3.5 px-4 text-slate-600 max-w-xs truncate">{{ camp.subject }}</td>
+                        <td class="py-3.5 px-4">
+                            {% if camp.status == 'CONCLUIDO' %}
+                            <span class="font-bold text-emerald-600">{{ camp.total_sent }}</span> enviadas / {{ camp.total_recipients }}
+                            {% if camp.total_failed > 0 %}<span class="text-red-500 text-[10px] block">({{ camp.total_failed }} falhas)</span>{% endif %}
+                            {% else %}
+                            <span class="text-slate-600">{{ camp.total_recipients }} contatos</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3.5 px-4">
+                            {% if camp.status == 'CONCLUIDO' %}
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">CONCLUÍDO</span>
+                            {% elif camp.status == 'PROCESSANDO' %}
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 animate-pulse">PROCESSANDO</span>
+                            {% elif camp.status == 'FALHA' %}
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-200">FALHA</span>
+                            {% else %}
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">RASCUNHO</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3.5 px-4 text-slate-400">{{ camp.created_at.strftime("%d/%m/%Y %H:%M") }}</td>
+                        <td class="py-3.5 px-4 text-right">
+                            <a href="/campaigns/{{ camp.id }}" class="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold rounded-lg transition text-[11px]">
+                                <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i>
+                                {% if camp.status == 'CONCLUIDO' %}Relatório{% else %}Disparar{% endif %}
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="py-12 text-center text-slate-400">
+                            <i data-lucide="send" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+                            Nenhuma campanha criada ainda. <a href="/campaigns/new" class="text-indigo-600 hover:underline font-semibold">Crie sua primeira campanha</a>.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

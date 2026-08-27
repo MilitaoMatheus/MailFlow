@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Descadastro Confirmado - MailFlow{% endblock %}
+
+{% block public_content %}
+<div class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-8 space-y-6 text-center">
+    <div class="w-16 h-16 rounded-2xl {% if success %}bg-emerald-50 text-emerald-600{% else %}bg-amber-50 text-amber-600{% endif %} flex items-center justify-center mx-auto shadow-md">
+        <i data-lucide="{% if success %}check-circle-2{% else %}alert-circle{% endif %}" class="w-8 h-8"></i>
+    </div>
+
+    <div class="space-y-2">
+        <h2 class="text-2xl font-bold text-slate-800 tracking-tight">
+            {% if success %}Descadastro Concluído{% else %}Aviso de Descadastro{% endif %}
+        </h2>
+        <p class="text-sm text-slate-600 leading-relaxed">
+            {{ message }}
+        </p>
+    </div>
+
+    {% if success and contact %}
+    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200/80 text-xs text-slate-600 text-left space-y-1">
+        <p>• <strong>E-mail:</strong> {{ contact.email }}</p>
+        <p>• <strong>Status Atualizado:</strong> <span class="text-amber-800 font-bold">DESCADASTRADO</span></p>
+        <p class="text-[11px] text-slate-400 mt-2">Você não receberá mais comunicações ou newsletters enviadas por este remetente.</p>
+    </div>
+    {% endif %}
+
+    <div class="pt-4 border-t border-slate-100">
+        <p class="text-xs text-slate-400">MailFlow &copy; Plataforma Segura de Comunicações</p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block page_title %}{% if contact and contact.id %}Editar Contato{% else %}Novo Contato{% endif %}{% endblock %}
+{% block page_subtitle %}Preencha os dados do contato para a sua lista de envio.{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 md:p-8 space-y-6">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                    <i data-lucide="user-plus" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 text-base">{% if contact and contact.id %}Atualizar Dados do Contato{% else %}Cadastrar Novo Contato{% endif %}</h3>
+                    <p class="text-xs text-slate-400">Validação sintática automática no salvamento</p>
+                </div>
+            </div>
+            <a href="/contacts" class="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 font-medium">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Voltar
+            </a>
+        </div>
+
+        {% if error %}
+        <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-3">
+            <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <form method="POST" action="{% if contact and contact.id %}/contacts/{{ contact.id }}/edit{% else %}/contacts/new{% endif %}" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="name" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">Nome Completo *</label>
+                    <input type="text" id="name" name="name" value="{{ contact.name if contact else '' }}" required
+                        placeholder="Ex: Ana Clara"
+                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                </div>
+
+                <div>
+                    <label for="email" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">E-mail do Destinatário *</label>
+                    <input type="email" id="email" name="email" value="{{ contact.email if contact else '' }}" required
+                        placeholder="ana.clara@empresa.com"
+                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label for="company" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">Empresa (Opcional)</label>
+                    <input type="text" id="company" name="company" value="{{ contact.company if contact and contact.company else '' }}"
+                        placeholder="Ex: Tech Solutions"
+                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                </div>
+
+                <div>
+                    <label for="phone" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">Telefone / Celular (Opcional)</label>
+                    <input type="text" id="phone" name="phone" value="{{ contact.phone if contact and contact.phone else '' }}"
+                        placeholder="(11) 99999-9999"
+                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                </div>
+            </div>
+
+            <div>
+                <label for="contact_status" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">Status Inicial</label>
+                <select id="contact_status" name="contact_status" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="ATIVO" {% if not contact or contact.status == 'ATIVO' %}selected{% endif %}>ATIVO (Apto a receber campanhas)</option>
+                    <option value="INATIVO" {% if contact and contact.status == 'INATIVO' %}selected{% endif %}>INATIVO (Temporariamente pausado)</option>
+                    <option value="INVALIDO" {% if contact and contact.status == 'INVALIDO' %}selected{% endif %}>INVÁLIDO (Não receberá disparos)</option>
+                    <option value="DESCADASTRADO" {% if contact and contact.status == 'DESCADASTRADO' %}selected{% endif %}>DESCADASTRADO (Opt-out solicitado)</option>
+                </select>
+            </div>
+
+            <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
+                <a href="/contacts" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-600/20 transition flex items-center gap-2">
+                    <i data-lucide="save" class="w-3.5 h-3.5"></i>
+                    Salvar Contato
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

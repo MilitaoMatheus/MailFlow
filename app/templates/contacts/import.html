@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block page_title %}Importação de Contatos via CSV{% endblock %}
+{% block page_subtitle %}Adicione múltiplos contatos de uma vez através de arquivo CSV.{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+    <!-- Resultado da Importação se houver -->
+    {% if result %}
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-4">
+        <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h4 class="font-bold text-slate-800 text-sm">Processamento Concluído</h4>
+                <p class="text-xs text-slate-500">Resumo da importação do arquivo CSV</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-center">
+                <span class="text-xs text-slate-500 block">Total de Linhas</span>
+                <span class="text-lg font-bold text-slate-800">{{ result.total_rows }}</span>
+            </div>
+            <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-100 text-center">
+                <span class="text-xs text-emerald-700 block">Importados</span>
+                <span class="text-lg font-bold text-emerald-700">{{ result.imported }}</span>
+            </div>
+            <div class="p-3 bg-amber-50 rounded-xl border border-amber-100 text-center">
+                <span class="text-xs text-amber-700 block">Duplicados</span>
+                <span class="text-lg font-bold text-amber-700">{{ result.duplicates }}</span>
+            </div>
+            <div class="p-3 bg-red-50 rounded-xl border border-red-100 text-center">
+                <span class="text-xs text-red-700 block">Inválidos</span>
+                <span class="text-lg font-bold text-red-700">{{ result.invalid }}</span>
+            </div>
+        </div>
+
+        {% if result.errors %}
+        <div class="mt-4 p-4 rounded-xl bg-red-50/70 border border-red-200">
+            <h5 class="text-xs font-bold text-red-800 mb-2">Erros / Avisos Detectados:</h5>
+            <ul class="text-xs text-red-700 space-y-1 list-disc list-inside">
+                {% for err in result.errors[:10] %}
+                <li>{{ err }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="pt-2 flex justify-end">
+            <a href="/contacts" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition">
+                Ver Lista de Contatos
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Card de Upload CSV -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 md:p-8 space-y-6">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                    <i data-lucide="file-up" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 text-base">Selecione o arquivo CSV</h3>
+                    <p class="text-xs text-slate-400">Compatível com delimitador vírgula (,) ou ponto-e-vírgula (;)</p>
+                </div>
+            </div>
+            <a href="/contacts" class="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 font-medium">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Voltar
+            </a>
+        </div>
+
+        {% if error %}
+        <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-3">
+            <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <form method="POST" action="/contacts/import" enctype="multipart/form-data" class="space-y-6">
+            <div class="border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center hover:border-indigo-400 transition bg-slate-50/50">
+                <i data-lucide="upload-cloud" class="w-12 h-12 mx-auto text-indigo-500 mb-3"></i>
+                <p class="text-sm font-semibold text-slate-700 mb-1">Escolha o arquivo CSV do seu computador</p>
+                <p class="text-xs text-slate-400 mb-4">Arquivos .csv de até 10MB</p>
+                <input type="file" name="file" accept=".csv,text/csv" required
+                    class="block w-full max-w-xs mx-auto text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+            </div>
+
+            <!-- Exemplo de Formato Aceito -->
+            <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/80">
+                <h5 class="text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5">
+                    <i data-lucide="info" class="w-3.5 h-3.5 text-indigo-600"></i> Formato de Cabeçalhos Recomendado:
+                </h5>
+                <pre class="bg-slate-900 text-slate-200 p-3 rounded-lg text-[11px] font-mono overflow-x-auto">nome;email;empresa;telefone
+Maria Silva;maria@empresa.com;Empresa Alfa;(11) 98888-7777
+João Santos;joao@teste.com;Beta Corp;(21) 97777-6666</pre>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+                <a href="/contacts" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-600/20 transition flex items-center gap-2">
+                    <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                    Processar Importação
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Visão geral consolidada do seu perfil de envio.{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Aviso de SMTP Não Configurado -->
+    {% if not smtp_account %}
+    <div class="p-5 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+        <div class="flex items-center gap-3.5">
+            <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center flex-shrink-0 shadow-md shadow-amber-500/20">
+                <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h4 class="font-bold text-amber-900 text-sm">Conta SMTP Pendente</h4>
+                <p class="text-xs text-amber-700 mt-0.5">Você ainda não configurou seu servidor de e-mail (Gmail, Outlook ou SMTP próprio). Configure para começar a disparar.</p>
+            </div>
+        </div>
+        <a href="/settings/email" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-xl shadow-sm transition flex items-center gap-2 flex-shrink-0">
+            <i data-lucide="settings" class="w-4 h-4"></i>
+            Configurar SMTP Agora
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Grid de Métricas Principais -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <!-- Card Campanhas -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Campanhas</p>
+                <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ metrics.total_campaigns }}</h3>
+                <span class="text-xs text-slate-400 mt-1 inline-block">Criadas no seu perfil</span>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <i data-lucide="send" class="w-6 h-6"></i>
+            </div>
+        </div>
+
+        <!-- Card Contatos -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Contatos</p>
+                <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ metrics.total_contacts }}</h3>
+                <span class="text-xs text-slate-400 mt-1 inline-block">Na sua lista exclusiva</span>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center">
+                <i data-lucide="users" class="w-6 h-6"></i>
+            </div>
+        </div>
+
+        <!-- Card Enviados -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">E-mails Enviados</p>
+                <h3 class="text-2xl font-bold text-emerald-600 mt-1">{{ metrics.total_sent }}</h3>
+                <span class="text-xs text-slate-400 mt-1 inline-block">{{ metrics.total_failed }} falhas registradas</span>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <i data-lucide="check-circle" class="w-6 h-6"></i>
+            </div>
+        </div>
+
+        <!-- Card Taxa de Sucesso -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Taxa de Sucesso</p>
+                <h3 class="text-2xl font-bold text-indigo-600 mt-1">{{ metrics.success_rate }}%</h3>
+                <span class="text-xs text-slate-400 mt-1 inline-block">Eficiência média de entrega</span>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <i data-lucide="trending-up" class="w-6 h-6"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Seção de Ações Rápidas -->
+    <div class="flex flex-wrap items-center gap-3">
+        <a href="/campaigns/new" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-600/20 transition flex items-center gap-2">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+            Nova Campanha
+        </a>
+        <a href="/contacts/new" class="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold rounded-xl shadow-sm transition flex items-center gap-2">
+            <i data-lucide="user-plus" class="w-4 h-4"></i>
+            Cadastrar Contato
+        </a>
+        <a href="/templates/new" class="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold rounded-xl shadow-sm transition flex items-center gap-2">
+            <i data-lucide="layout" class="w-4 h-4"></i>
+            Criar Template
+        </a>
+        <a href="/contacts/import" class="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold rounded-xl shadow-sm transition flex items-center gap-2">
+            <i data-lucide="upload" class="w-4 h-4"></i>
+            Importar CSV
+        </a>
+    </div>
+
+    <!-- Grid: Últimas Campanhas & Atividades Recentes -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Tabela de Últimas Campanhas -->
+        <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-slate-800 text-sm">Últimas Campanhas</h3>
+                    <p class="text-xs text-slate-400">Histórico recente de disparos realizados</p>
+                </div>
+                <a href="/campaigns" class="text-xs text-indigo-600 hover:underline font-semibold flex items-center gap-1">
+                    Ver todas <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                </a>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100">
+                        <tr>
+                            <th class="py-3 px-4">Campanha</th>
+                            <th class="py-3 px-4">Destinatários</th>
+                            <th class="py-3 px-4">Status</th>
+                            <th class="py-3 px-4">Data</th>
+                            <th class="py-3 px-4 text-right">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-slate-700">
+                        {% for camp in metrics.recent_campaigns %}
+                        <tr class="hover:bg-slate-50/70 transition">
+                            <td class="py-3.5 px-4 font-semibold text-slate-800">{{ camp.name }}</td>
+                            <td class="py-3.5 px-4">
+                                <span class="font-medium text-emerald-600">{{ camp.total_sent }}</span> / {{ camp.total_recipients }}
+                            </td>
+                            <td class="py-3.5 px-4">
+                                {% if camp.status == 'CONCLUIDO' %}
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Concluído</span>
+                                {% elif camp.status == 'PROCESSANDO' %}
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 animate-pulse">Processando</span>
+                                {% elif camp.status == 'FALHA' %}
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-200">Falha</span>
+                                {% else %}
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">Rascunho</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3.5 px-4 text-slate-500">{{ camp.created_at.strftime("%d/%m/%Y") }}</td>
+                            <td class="py-3.5 px-4 text-right">
+                                <a href="/campaigns/{{ camp.id }}" class="text-indigo-600 hover:text-indigo-800 font-semibold">Ver Relatório</a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="py-8 text-center text-slate-400">
+                                <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
+                                Nenhuma campanha disparada ainda.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Painel de Logs de Auditoria -->
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                    <h3 class="font-bold text-slate-800 text-sm">Histórico de Atividades</h3>
+                    <span class="text-[10px] uppercase font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">Logs</span>
+                </div>
+                <div class="space-y-3">
+                    {% for log in recent_logs %}
+                    <div class="flex items-start gap-2.5 text-xs">
+                        <div class="w-2 h-2 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0"></div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-slate-700 font-medium leading-snug">{{ log.description }}</p>
+                            <span class="text-[10px] text-slate-400">{{ log.created_at.strftime("%d/%m %H:%M") }}</span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="text-xs text-slate-400 text-center py-6">Nenhum evento registrado.</p>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="mt-4 pt-3 border-t border-slate-100 text-center">
+                <span class="text-[11px] text-slate-400 font-medium">Segurança e isolamento ativos</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

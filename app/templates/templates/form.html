@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block page_title %}{% if template and template.id %}Editar Template{% else %}Novo Template{% endif %}{% endblock %}
+{% block page_subtitle %}Defina a estrutura visual particionada em Header, Body e Footer com variáveis personalizadas.{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6" x-data="{
+    insertVar(tag, fieldId) {
+        const el = document.getElementById(fieldId);
+        if (!el) return;
+        const start = el.selectionStart;
+        const end = el.selectionEnd;
+        const text = el.value;
+        el.value = text.substring(0, start) + tag + text.substring(end);
+        el.focus();
+        el.selectionStart = el.selectionEnd = start + tag.length;
+    }
+}">
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 md:p-8 space-y-6">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                    <i data-lucide="layout" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 text-base">{% if template and template.id %}Atualizar Template{% else %}Criar Novo Template Modular{% endif %}</h3>
+                    <p class="text-xs text-slate-400">Header, Body e Footer são combinados automaticamente em um layout responsivo</p>
+                </div>
+            </div>
+            <a href="/templates" class="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 font-medium">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Voltar
+            </a>
+        </div>
+
+        {% if error %}
+        <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-3">
+            <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <!-- Guia de Variáveis Disponíveis -->
+        <div class="p-4 bg-indigo-50/70 border border-indigo-100 rounded-xl space-y-2">
+            <h4 class="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-indigo-600"></i>
+                Variáveis Personalizadas (Clique para copiar / inserir):
+            </h4>
+            <div class="flex flex-wrap gap-2 text-xs">
+                <button type="button" @click="insertVar('\{\{nome\}\}', 'body')" class="px-2.5 py-1 bg-white hover:bg-indigo-100 border border-indigo-200 rounded-lg text-indigo-700 font-mono text-[11px] transition">
+                    + &#123;&#123;nome&#125;&#125;
+                </button>
+                <button type="button" @click="insertVar('\{\{email\}\}', 'body')" class="px-2.5 py-1 bg-white hover:bg-indigo-100 border border-indigo-200 rounded-lg text-indigo-700 font-mono text-[11px] transition">
+                    + &#123;&#123;email&#125;&#125;
+                </button>
+                <button type="button" @click="insertVar('\{\{empresa\}\}', 'body')" class="px-2.5 py-1 bg-white hover:bg-indigo-100 border border-indigo-200 rounded-lg text-indigo-700 font-mono text-[11px] transition">
+                    + &#123;&#123;empresa&#125;&#125;
+                </button>
+                <button type="button" @click="insertVar('\{\{data\}\}', 'footer')" class="px-2.5 py-1 bg-white hover:bg-indigo-100 border border-indigo-200 rounded-lg text-indigo-700 font-mono text-[11px] transition">
+                    + &#123;&#123;data&#125;&#125;
+                </button>
+                <button type="button" @click="insertVar('\{\{nome_perfil\}\}', 'body')" class="px-2.5 py-1 bg-white hover:bg-indigo-100 border border-indigo-200 rounded-lg text-indigo-700 font-mono text-[11px] transition">
+                    + &#123;&#123;nome_perfil&#125;&#125;
+                </button>
+                <button type="button" @click="insertVar('\{\{link_descadastro\}\}', 'footer')" class="px-2.5 py-1 bg-white hover:bg-indigo-100 border border-indigo-200 rounded-lg text-indigo-700 font-mono text-[11px] transition">
+                    + &#123;&#123;link_descadastro&#125;&#125;
+                </button>
+            </div>
+        </div>
+
+        <form method="POST" action="{% if template and template.id %}/templates/{{ template.id }}/edit{% else %}/templates/new{% endif %}" class="space-y-6">
+            <!-- Nome do Template -->
+            <div>
+                <label for="name" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">Nome do Template *</label>
+                <input type="text" id="name" name="name" value="{{ template.name if template else '' }}" required
+                    placeholder="Ex: Newsletter Semanal Padrão"
+                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+            </div>
+
+            <!-- Bloco 1: HEADER -->
+            <div class="space-y-1.5 p-4 rounded-xl border border-slate-200 bg-slate-50/40">
+                <div class="flex items-center justify-between">
+                    <label for="header" class="block text-xs font-bold text-slate-800 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-slate-800 text-white text-[10px] flex items-center justify-center font-mono font-bold">1</span>
+                        HEADER (Identidade Visual / Logotipo / Título)
+                    </label>
+                    <span class="text-[10px] text-slate-400">HTML ou Texto</span>
+                </div>
+                <textarea id="header" name="header" rows="4"
+                    placeholder="Ex: <h1 style='margin:0; font-size:22px; color:#ffffff;'>{{empresa}}</h1>"
+                    class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl font-mono text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">{{ template.header if template else '' }}</textarea>
+            </div>
+
+            <!-- Bloco 2: BODY -->
+            <div class="space-y-1.5 p-4 rounded-xl border border-indigo-200 bg-indigo-50/20">
+                <div class="flex items-center justify-between">
+                    <label for="body" class="block text-xs font-bold text-indigo-950 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] flex items-center justify-center font-mono font-bold">2</span>
+                        BODY (Conteúdo Principal / Mensagem) *
+                    </label>
+                    <span class="text-[10px] text-indigo-600 font-semibold">Obrigatório</span>
+                </div>
+                <textarea id="body" name="body" rows="8" required
+                    placeholder="Ex: <h2>Olá, {{nome}}!</h2><p>Confira nossos lançamentos exclusivos para você hoje.</p>"
+                    class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl font-mono text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">{{ template.body if template else '' }}</textarea>
+            </div>
+
+            <!-- Bloco 3: FOOTER -->
+            <div class="space-y-1.5 p-4 rounded-xl border border-slate-200 bg-slate-50/40">
+                <div class="flex items-center justify-between">
+                    <label for="footer" class="block text-xs font-bold text-slate-800 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-slate-800 text-white text-[10px] flex items-center justify-center font-mono font-bold">3</span>
+                        FOOTER (Dados da Empresa / Link de Descadastro)
+                    </label>
+                    <span class="text-[10px] text-slate-400">Opt-out / Legal</span>
+                </div>
+                <textarea id="footer" name="footer" rows="4"
+                    placeholder="Ex: <p>{{empresa}} - Todos os direitos reservados.</p><p><a href='{{link_descadastro}}'>Cancelar inscrição</a></p>"
+                    class="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl font-mono text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500">{{ template.footer if template else '' }}</textarea>
+            </div>
+
+            <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
+                <a href="/templates" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-600/20 transition flex items-center gap-2">
+                    <i data-lucide="save" class="w-3.5 h-3.5"></i>
+                    Salvar Template
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

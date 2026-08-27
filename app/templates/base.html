@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Newsletter & Email Manager{% endblock %}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col font-sans">
+
+    {% if user %}
+    <!-- Layout para Usuário Autenticado -->
+    <div class="flex-1 flex flex-col md:flex-row min-h-screen">
+        <!-- Sidebar Navigation -->
+        <aside class="w-full md:w-64 bg-slate-900 text-slate-300 flex flex-col justify-between shadow-xl flex-shrink-0">
+            <div>
+                <!-- App Brand -->
+                <div class="p-6 border-b border-slate-800 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/30">
+                        <i data-lucide="mail" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-white text-base tracking-wide leading-none">MailFlow</h1>
+                        <span class="text-xs text-indigo-400 font-medium">Email & Newsletter</span>
+                    </div>
+                </div>
+
+                <!-- Navigation Links -->
+                <nav class="p-4 space-y-1.5 text-sm font-medium">
+                    <a href="/dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all {% if active_menu == 'dashboard' %}bg-indigo-600 text-white shadow-md shadow-indigo-600/20 font-semibold{% else %}hover:bg-slate-800 text-slate-300 hover:text-white{% endif %}">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                        Dashboard
+                    </a>
+                    <a href="/campaigns" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all {% if active_menu == 'campaigns' %}bg-indigo-600 text-white shadow-md shadow-indigo-600/20 font-semibold{% else %}hover:bg-slate-800 text-slate-300 hover:text-white{% endif %}">
+                        <i data-lucide="send" class="w-4 h-4"></i>
+                        Campanhas
+                    </a>
+                    <a href="/templates" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all {% if active_menu == 'templates' %}bg-indigo-600 text-white shadow-md shadow-indigo-600/20 font-semibold{% else %}hover:bg-slate-800 text-slate-300 hover:text-white{% endif %}">
+                        <i data-lucide="layers" class="w-4 h-4"></i>
+                        Templates
+                    </a>
+                    <a href="/contacts" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all {% if active_menu == 'contacts' %}bg-indigo-600 text-white shadow-md shadow-indigo-600/20 font-semibold{% else %}hover:bg-slate-800 text-slate-300 hover:text-white{% endif %}">
+                        <i data-lucide="users" class="w-4 h-4"></i>
+                        Contatos
+                    </a>
+                    <a href="/settings/email" class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all {% if active_menu == 'settings_email' %}bg-indigo-600 text-white shadow-md shadow-indigo-600/20 font-semibold{% else %}hover:bg-slate-800 text-slate-300 hover:text-white{% endif %}">
+                        <i data-lucide="server" class="w-4 h-4"></i>
+                        Configurações SMTP
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Profile & Logout Card -->
+            <div class="p-4 border-t border-slate-800">
+                <div class="flex items-center justify-between p-2 rounded-lg bg-slate-800/60">
+                    <a href="/profile" class="flex items-center gap-3 min-w-0 hover:opacity-80 transition">
+                        <div class="w-9 h-9 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm border border-indigo-500/30 flex-shrink-0">
+                            {{ user.name[:1].upper() }}
+                        </div>
+                        <div class="truncate">
+                            <p class="text-sm font-semibold text-white truncate leading-none mb-1">{{ user.name }}</p>
+                            <p class="text-xs text-slate-400 truncate leading-none">{{ user.email }}</p>
+                        </div>
+                    </a>
+                    <a href="/logout" title="Sair do sistema" class="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-700/60 rounded-md transition">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+            <!-- Header Top Bar -->
+            <header class="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between shadow-sm">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">{% block page_title %}Visão Geral{% endblock %}</h2>
+                    <p class="text-xs text-slate-500">{% block page_subtitle %}Gerencie seus envios e audiência com isolamento seguro.{% endblock %}</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Perfil: {{ user.name }}
+                    </span>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="p-6 md:p-8 flex-1">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+    {% else %}
+    <!-- Layout para Telas Públicas / Autenticação -->
+    <div class="min-h-screen flex flex-col justify-center items-center p-4">
+        {% block public_content %}{% endblock %}
+    </div>
+    {% endif %}
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

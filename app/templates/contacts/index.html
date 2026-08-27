@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block page_title %}Gerenciamento de Contatos{% endblock %}
+{% block page_subtitle %}Sua base exclusiva de contatos e destinatários.{% endblock %}
+
+{% block content %}
+<div class="space-y-6" x-data="{ deleteModalOpen: false, deleteId: null, deleteName: '' }">
+    <!-- Barra Superior de Ações e Filtros -->
+    <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+        <!-- Formulário de Busca e Filtro -->
+        <form method="GET" action="/contacts" class="flex flex-wrap items-center gap-3 flex-1">
+            <div class="relative flex-1 min-w-[200px]">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
+                <input type="text" name="search" value="{{ search or '' }}" placeholder="Buscar por nome, e-mail ou empresa..."
+                    class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+            </div>
+            
+            <select name="status_filter" class="py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="">Todos os Status</option>
+                <option value="ATIVO" {% if status_filter == 'ATIVO' %}selected{% endif %}>Ativo</option>
+                <option value="INATIVO" {% if status_filter == 'INATIVO' %}selected{% endif %}>Inativo</option>
+                <option value="INVALIDO" {% if status_filter == 'INVALIDO' %}selected{% endif %}>Inválido</option>
+                <option value="DESCADASTRADO" {% if status_filter == 'DESCADASTRADO' %}selected{% endif %}>Descadastrado (Opt-out)</option>
+            </select>
+
+            <button type="submit" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl transition">
+                Filtrar
+            </button>
+            {% if search or status_filter %}
+            <a href="/contacts" class="px-3 py-2 text-xs text-slate-500 hover:text-slate-700">Limpar</a>
+            {% endif %}
+        </form>
+
+        <!-- Botões de Ação -->
+        <div class="flex items-center gap-2 flex-shrink-0">
+            <a href="/contacts/export" class="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl shadow-sm transition flex items-center gap-1.5" title="Exportar CSV">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                Exportar
+            </a>
+            <a href="/contacts/import" class="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl shadow-sm transition flex items-center gap-1.5" title="Importar CSV">
+                <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                Importar CSV
+            </a>
+            <a href="/contacts/new" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                Novo Contato
+            </a>
+        </div>
+    </div>
+
+    <!-- Tabela de Contatos -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-100 uppercase tracking-wider text-[11px]">
+                    <tr>
+                        <th class="py-3.5 px-4">Nome</th>
+                        <th class="py-3.5 px-4">E-mail</th>
+                        <th class="py-3.5 px-4">Empresa / Telefone</th>
+                        <th class="py-3.5 px-4">Status</th>
+                        <th class="py-3.5 px-4">Cadastro</th>
+                        <th class="py-3.5 px-4 text-right">Ações</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-700">
+                    {% for contact in contacts %}
+                    <tr class="hover:bg-slate-50/60 transition">
+                        <td class="py-3.5 px-4 font-semibold text-slate-900">{{ contact.name }}</td>
+                        <td class="py-3.5 px-4 text-slate-600 font-mono text-[11px]">{{ contact.email }}</td>
+                        <td class="py-3.5 px-4 text-slate-500">
+                            {% if contact.company %}<span class="font-medium text-slate-700">{{ contact.company }}</span>{% endif %}
+                            {% if contact.phone %}<span class="text-slate-400 block text-[10px]">{{ contact.phone }}</span>{% endif %}
+                            {% if not contact.company and not contact.phone %}-{% endif %}
+                        </td>
+                        <td class="py-3.5 px-4">
+                            {% if contact.status == 'ATIVO' %}
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">ATIVO</span>
+                            {% elif contact.status == 'INATIVO' %}
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">INATIVO</span>
+                            {% elif contact.status == 'INVALIDO' %}
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-200">INVÁLIDO</span>
+                            {% elif contact.status == 'DESCADASTRADO' %}
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">DESCADASTRADO</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3.5 px-4 text-slate-400">{{ contact.created_at.strftime("%d/%m/%Y") }}</td>
+                        <td class="py-3.5 px-4 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <form method="POST" action="/contacts/{{ contact.id }}/toggle" class="inline">
+                                    <button type="submit" title="Alternar status Ativo/Inativo" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition">
+                                        <i data-lucide="power" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                </form>
+                                <a href="/contacts/{{ contact.id }}/edit" title="Editar Contato" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition">
+                                    <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                                </a>
+                                <button @click="deleteId = {{ contact.id }}; deleteName = '{{ contact.name }}'; deleteModalOpen = true"
+                                    title="Excluir Contato" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="py-12 text-center text-slate-400">
+                            <i data-lucide="users" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+                            Nenhum contato encontrado. <a href="/contacts/new" class="text-indigo-600 hover:underline font-semibold">Cadastre seu primeiro contato</a> ou <a href="/contacts/import" class="text-indigo-600 hover:underline font-semibold">importe via CSV</a>.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginação -->
+        {% if total_pages > 1 %}
+        <div class="p-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <span>Página {{ current_page }} de {{ total_pages }} (Total: {{ total_count }} contatos)</span>
+            <div class="flex items-center gap-1.5">
+                {% if current_page > 1 %}
+                <a href="/contacts?page={{ current_page - 1 }}&search={{ search }}&status_filter={{ status_filter }}" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium">Anterior</a>
+                {% endif %}
+                {% if current_page < total_pages %}
+                <a href="/contacts?page={{ current_page + 1 }}&search={{ search }}&status_filter={{ status_filter }}" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium">Próxima</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div x-show="deleteModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+        <div @click.away="deleteModalOpen = false" class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+            <div class="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto">
+                <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+            </div>
+            <div class="text-center">
+                <h4 class="font-bold text-slate-800 text-base">Excluir Contato</h4>
+                <p class="text-xs text-slate-500 mt-1">Deseja realmente remover o contato <strong x-text="deleteName"></strong>? Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="flex items-center gap-3 pt-2">
+                <button @click="deleteModalOpen = false" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl">Cancelar</button>
+                <form :action="'/contacts/' + deleteId + '/delete'" method="POST" class="flex-1">
+                    <button type="submit" class="w-full py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-red-600/20">Confirmar Exclusão</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
