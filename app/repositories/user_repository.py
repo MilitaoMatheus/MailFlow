@@ -29,6 +29,7 @@ class UserRepository(BaseRepository):
         if not user:
             return False
         user.password_hash = new_password_hash
+        user.token_version = (getattr(user, "token_version", 1) or 1) + 1
         self.db.commit()
         return True
 

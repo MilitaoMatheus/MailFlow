@@ -14,12 +14,23 @@ def get_current_user_optional(request: Request, db: Session = Depends(get_db)) -
     if not token:
         return None
 
-    user_id = AuthService.decode_session_token(token)
-    if not user_id:
+    payload = AuthService.decode_session_payload(token)
+    if not payload:
         return None
 
+    user_id = payload.get("uid")
+    token_ver = payload.get("ver", 1)
+
     user_repo = UserRepository(db)
-    return user_repo.get_by_id(user_id)
+    user = user_repo.get_by_id(user_id)
+    if not user:
+        return None
+
+    # Validação de invalidação de sessão (ex: após troca de senha)
+    if getattr(user, "token_version", 1) != token_ver:
+        return None
+
+    return user
 
 
 def require_auth_user(request: Request, db: Session = Depends(get_db)) -> User:

@@ -102,3 +102,20 @@ class SecurityService:
             return False, f"O domínio do e-mail '{domain_part}' é inválido."
 
         return True, email_clean.lower()
+
+    @staticmethod
+    def sanitize_filename(filename: str) -> str:
+        """Sanitiza o nome de arquivos para prevenir Path Traversal e caracteres inválidos."""
+        import os
+        import re
+        if not filename:
+            return "arquivo"
+        # Remove componentes de diretório
+        clean_name = os.path.basename(filename.strip().replace("\\", "/"))
+        # Remove caracteres perigosos
+        clean_name = re.sub(r"[^\w\.\-]", "_", clean_name)
+        # Evita nomes ocultos ou navegação relativa
+        clean_name = clean_name.lstrip(".")
+        if not clean_name:
+            clean_name = "arquivo"
+        return clean_name[:150]

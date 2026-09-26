@@ -34,7 +34,21 @@ def get_db():
 
 
 def init_db():
-    """Inicializa as tabelas no banco de dados."""
+    """Inicializa as tabelas no banco de dados e aplica migrações leves."""
     # Importar todos os modelos para que o Base reconheça as tabelas
     import app.models  # noqa: F401
     Base.metadata.create_all(bind=engine)
+
+    # Migração leve para garantir coluna token_version em bancos existentes
+    try:
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            # Verifica colunas da tabela users
+            if settings.DATABASE_URL.startswith("sqlite"):
+                cols = conn.execute(text("PRAGMA table_info(users)")).fetchall()
+                col_names = [c[1] for c in cols]
+                if "token_version" not in col_names and len(col_names) > 0:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN token_version INTEGER DEFAULT 1 NOT NULL"))
+                    conn.commit()
+    except Exception:
+        pass

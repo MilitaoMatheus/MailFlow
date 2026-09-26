@@ -103,6 +103,15 @@ class CampaignRepository(BaseRepository):
                 campaign.sent_at = sent_at
             self.db.commit()
 
+    def delete(self, user_id: int, campaign_id: int) -> bool:
+        """Exclui campanha e dados associados pertencentes ao usuário."""
+        campaign = self.get_by_id(user_id, campaign_id)
+        if not campaign:
+            return False
+        self.db.delete(campaign)
+        self.db.commit()
+        return True
+
     def update_recipient_status(
         self,
         campaign_contact_id: int,

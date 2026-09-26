@@ -43,12 +43,13 @@ def login_submit(
         )
 
     # Criação do token de sessão seguro
-    token = AuthService.create_session_token(user.id)
+    token = AuthService.create_session_token(user.id, token_version=getattr(user, "token_version", 1))
     response = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
     response.set_cookie(
         key="session_token",
         value=token,
         httponly=True,
+        secure=not settings.DEBUG,
         max_age=86400 * 7,
         samesite="lax"
     )
@@ -88,12 +89,13 @@ def register_submit(
         )
 
     # Login automático após cadastro
-    token = AuthService.create_session_token(user.id)
+    token = AuthService.create_session_token(user.id, token_version=getattr(user, "token_version", 1))
     response = RedirectResponse(url="/dashboard", status_code=status.HTTP_303_SEE_OTHER)
     response.set_cookie(
         key="session_token",
         value=token,
         httponly=True,
+        secure=not settings.DEBUG,
         max_age=86400 * 7,
         samesite="lax"
     )

@@ -4,22 +4,88 @@
 {% block page_subtitle %}Relatório detalhado de execução e status dos destinatários.{% endblock %}
 
 {% block content %}
-<div class="space-y-6" x-data="{ sendModalOpen: false, previewModalOpen: false }">
+<div class="space-y-6" x-data="{ 
+    sendModalOpen: false, 
+    previewModalOpen: false,
+    deleteModalOpen: false,
+    status: '{{ report.campaign.status }}',
+    progressPct: {{ report.success_rate if report.campaign.status == 'CONCLUIDO' else 0 }},
+    sent: {{ report.sent }},
+    failed: {{ report.failed }},
+    invalid: {{ report.invalid }},
+    ignored: {{ report.ignored }},
+    total: {{ report.total }},
+    init() {
+        if (this.status === 'PROCESSANDO') {
+            this.startPolling();
+        }
+    },
+    startPolling() {
+        const interval = setInterval(async () => {
+            try {
+                const res = await fetch('/campaigns/{{ report.campaign.id }}/status');
+                if (res.ok) {
+                    const data = await res.json();
+                    this.status = data.status;
+                    this.progressPct = data.progress_pct;
+                    this.sent = data.sent;
+                    this.failed = data.failed;
+                    this.invalid = data.invalid;
+                    this.ignored = data.ignored;
+                    this.total = data.total;
+                    if (data.is_finished) {
+                        clearInterval(interval);
+                        setTimeout(() => window.location.reload(), 1200);
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }, 1500);
+    }
+}">
+    <!-- Banner de Progresso em Tempo Real (Ativo quando PROCESSANDO) -->
+    <div x-show="status === 'PROCESSANDO'" x-cloak class="p-6 bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 rounded-2xl shadow-xl text-white space-y-4 border border-blue-500/30 animate-pulse">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/40">
+                    <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-sm text-white">Disparo Assíncrono em Andamento</h4>
+                    <p class="text-xs text-blue-200">Enviando e-mails em segundo plano sem bloquear sua navegação.</p>
+                </div>
+            </div>
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-500/30 text-blue-300 border border-blue-500/50" x-text="progressPct + '% Concluído'"></span>
+        </div>
+        <!-- Barra de Progresso Animada -->
+        <div class="w-full bg-slate-800 rounded-full h-3 overflow-hidden p-0.5 border border-slate-700">
+            <div class="bg-gradient-to-r from-blue-500 to-emerald-400 h-2 rounded-full transition-all duration-500 ease-out" :style="'width: ' + progressPct + '%'"></div>
+        </div>
+        <div class="flex items-center justify-between text-xs text-slate-400 pt-1">
+            <span>Enviados: <strong class="text-emerald-400" x-text="sent"></strong> / <span x-text="total"></span></span>
+            <span>Falhas: <strong class="text-rose-400" x-text="failed"></strong> | Inválidos: <strong class="text-amber-400" x-text="invalid"></strong></span>
+        </div>
+    </div>
+
     <!-- Top Card Resumo e Ação de Disparo -->
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 md:p-8">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-100 pb-6">
             <div class="space-y-1">
                 <div class="flex items-center gap-3">
                     <h3 class="text-xl font-bold text-slate-900">{{ report.campaign.name }}</h3>
-                    {% if report.campaign.status == 'CONCLUIDO' %}
-                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">CONCLUÍDO</span>
-                    {% elif report.campaign.status == 'PROCESSANDO' %}
-                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 animate-pulse">PROCESSANDO</span>
-                    {% elif report.campaign.status == 'FALHA' %}
-                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200">FALHA</span>
-                    {% else %}
-                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">RASCUNHO</span>
-                    {% endif %}
+                    <template x-if="status === 'CONCLUIDO'">
+                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">CONCLUÍDO</span>
+                    </template>
+                    <template x-if="status === 'PROCESSANDO'">
+                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 animate-pulse">PROCESSANDO</span>
+                    </template>
+                    <template x-if="status === 'FALHA'">
+                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200">FALHA</span>
+                    </template>
+                    <template x-if="status === 'RASCUNHO'">
+                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">RASCUNHO</span>
+                    </template>
                 </div>
                 <p class="text-xs text-slate-500 font-medium">Assunto: <strong class="text-slate-700">{{ report.campaign.subject }}</strong></p>
                 <p class="text-[11px] text-slate-400">Data de Envio: {{ report.sent_at }}</p>
@@ -28,7 +94,7 @@
                     <span class="text-[10px] uppercase font-bold text-slate-400">Anexos:</span>
                     {% for att in report.campaign.attachments %}
                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-[10px] font-mono text-slate-600" title="{{ att.file_name }}">
-                        <i data-lucide="paperclip" class="w-3 h-3 text-indigo-500"></i>
+                        <i data-lucide="paperclip" class="w-3 h-3 text-blue-500"></i>
                         {{ att.file_name }}
                     </span>
                     {% endfor %}
@@ -37,26 +103,33 @@
             </div>
 
             <!-- Botões de Ação -->
-            <div class="flex items-center gap-3 flex-shrink-0">
+            <div class="flex items-center gap-2.5 flex-shrink-0">
                 <button @click="previewModalOpen = true"
-                    class="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl shadow-sm transition flex items-center gap-1.5">
-                    <i data-lucide="eye" class="w-4 h-4 text-indigo-600"></i>
-                    Ver Prévia do E-mail
+                    class="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl shadow-sm transition flex items-center gap-1.5">
+                    <i data-lucide="eye" class="w-4 h-4 text-blue-600"></i>
+                    Prévia
                 </button>
 
-                {% if report.campaign.status != 'CONCLUIDO' and report.campaign.status != 'PROCESSANDO' %}
-                <button @click="sendModalOpen = true"
-                    class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md shadow-indigo-600/30 transition flex items-center gap-2">
-                    <i data-lucide="send" class="w-4 h-4"></i>
-                    Disparar Campanha Agora
+                <button @click="deleteModalOpen = true"
+                    class="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-xl border border-rose-200 transition flex items-center gap-1.5" title="Excluir campanha e anexos">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    Excluir
                 </button>
-                {% else %}
-                <button @click="sendModalOpen = true"
-                    class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition flex items-center gap-1.5" title="Reenviar campanha">
-                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-                    Reexecutar Disparo
-                </button>
-                {% endif %}
+
+                <template x-if="status !== 'CONCLUIDO' && status !== 'PROCESSANDO'">
+                    <button @click="sendModalOpen = true"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md shadow-blue-600/25 transition flex items-center gap-2">
+                        <i data-lucide="send" class="w-4 h-4"></i>
+                        Disparar Agora
+                    </button>
+                </template>
+                <template x-if="status === 'CONCLUIDO' || status === 'FALHA'">
+                    <button @click="sendModalOpen = true"
+                        class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition flex items-center gap-1.5" title="Reexecutar campanha">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                        Reexecutar
+                    </button>
+                </template>
             </div>
         </div>
 
@@ -64,27 +137,27 @@
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 pt-6">
             <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 text-center">
                 <span class="text-[11px] font-semibold text-slate-500 block uppercase">Total</span>
-                <span class="text-xl font-bold text-slate-800 mt-1 block">{{ report.total }}</span>
+                <span class="text-xl font-bold text-slate-800 mt-1 block" x-text="total">{{ report.total }}</span>
             </div>
             <div class="p-4 bg-emerald-50 rounded-xl border border-emerald-100 text-center">
                 <span class="text-[11px] font-semibold text-emerald-700 block uppercase">Enviados</span>
-                <span class="text-xl font-bold text-emerald-700 mt-1 block">{{ report.sent }}</span>
+                <span class="text-xl font-bold text-emerald-700 mt-1 block" x-text="sent">{{ report.sent }}</span>
             </div>
             <div class="p-4 bg-red-50 rounded-xl border border-red-100 text-center">
                 <span class="text-[11px] font-semibold text-red-700 block uppercase">Falhas</span>
-                <span class="text-xl font-bold text-red-700 mt-1 block">{{ report.failed }}</span>
+                <span class="text-xl font-bold text-red-700 mt-1 block" x-text="failed">{{ report.failed }}</span>
             </div>
             <div class="p-4 bg-amber-50 rounded-xl border border-amber-100 text-center">
                 <span class="text-[11px] font-semibold text-amber-700 block uppercase">Inválidos</span>
-                <span class="text-xl font-bold text-amber-700 mt-1 block">{{ report.invalid }}</span>
+                <span class="text-xl font-bold text-amber-700 mt-1 block" x-text="invalid">{{ report.invalid }}</span>
             </div>
-            <div class="p-4 bg-purple-50 rounded-xl border border-purple-100 text-center">
-                <span class="text-[11px] font-semibold text-purple-700 block uppercase">Ignorados</span>
-                <span class="text-xl font-bold text-purple-700 mt-1 block">{{ report.ignored }}</span>
+            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 text-center">
+                <span class="text-[11px] font-semibold text-slate-500 block uppercase">Ignorados</span>
+                <span class="text-xl font-bold text-slate-700 mt-1 block" x-text="ignored">{{ report.ignored }}</span>
             </div>
-            <div class="p-4 bg-indigo-50 rounded-xl border border-indigo-100 text-center">
-                <span class="text-[11px] font-semibold text-indigo-700 block uppercase">Sucesso</span>
-                <span class="text-xl font-bold text-indigo-700 mt-1 block">{{ report.success_rate }}%</span>
+            <div class="p-4 bg-blue-50 rounded-xl border border-blue-100 text-center">
+                <span class="text-[11px] font-semibold text-blue-700 block uppercase">Sucesso</span>
+                <span class="text-xl font-bold text-blue-700 mt-1 block" x-text="progressPct + '%'">{{ report.success_rate }}%</span>
             </div>
         </div>
     </div>
@@ -129,7 +202,7 @@
                                 <i data-lucide="alert-circle" class="w-3 h-3"></i> INVÁLIDO
                             </span>
                             {% elif r.status == 'IGNORADO' %}
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1 w-max">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200 flex items-center gap-1 w-max">
                                 <i data-lucide="slash" class="w-3 h-3"></i> IGNORADO
                             </span>
                             {% else %}
@@ -160,7 +233,7 @@
     <!-- Modal de Confirmação de Disparo -->
     <div x-show="sendModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
         <div @click.away="sendModalOpen = false" class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto shadow-md shadow-indigo-500/20">
+            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto shadow-md shadow-blue-500/20">
                 <i data-lucide="send" class="w-6 h-6"></i>
             </div>
             <div class="text-center">
@@ -180,7 +253,7 @@
             <div class="flex items-center gap-3 pt-2">
                 <button @click="sendModalOpen = false" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl">Cancelar</button>
                 <form action="/campaigns/{{ report.campaign.id }}/send" method="POST" class="flex-1">
-                    <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md shadow-indigo-600/30">
+                    <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-md shadow-blue-600/25">
                         Confirmar e Enviar
                     </button>
                 </form>
@@ -193,7 +266,7 @@
         <div @click.away="previewModalOpen = false" class="bg-white rounded-2xl max-w-2xl w-full h-[80vh] flex flex-col shadow-2xl overflow-hidden">
             <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
                 <div class="flex items-center gap-2">
-                    <i data-lucide="eye" class="w-4 h-4 text-indigo-600"></i>
+                    <i data-lucide="eye" class="w-4 h-4 text-blue-600"></i>
                     <h4 class="font-bold text-slate-800 text-sm">Prévia do E-mail da Campanha</h4>
                 </div>
                 <button @click="previewModalOpen = false" class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg">
@@ -202,6 +275,29 @@
             </div>
             <div class="flex-1 p-4 bg-slate-100">
                 <iframe src="/campaigns/{{ report.campaign.id }}/preview" class="w-full h-full rounded-xl border border-slate-200 bg-white"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div x-show="deleteModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+        <div @click.away="deleteModalOpen = false" class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+            <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto shadow-md shadow-rose-500/20">
+                <i data-lucide="trash-2" class="w-6 h-6"></i>
+            </div>
+            <div class="text-center">
+                <h4 class="font-bold text-slate-800 text-base">Excluir Campanha?</h4>
+                <p class="text-xs text-slate-500 mt-1">
+                    Esta ação removerá a campanha <strong>{{ report.campaign.name }}</strong>, todo o histórico de envios e os arquivos anexos salvos no disco. Esta operação não pode ser desfeita.
+                </p>
+            </div>
+            <div class="flex items-center gap-3 pt-2">
+                <button @click="deleteModalOpen = false" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl">Cancelar</button>
+                <form action="/campaigns/{{ report.campaign.id }}/delete" method="POST" class="flex-1">
+                    <button type="submit" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-md shadow-rose-600/30">
+                        Confirmar Exclusão
+                    </button>
+                </form>
             </div>
         </div>
     </div>

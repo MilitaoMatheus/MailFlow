@@ -113,10 +113,11 @@ class AuthService:
     # --- Gerenciamento de Sessão Criptografada / Assinada ---
 
     @staticmethod
-    def create_session_token(user_id: int, expires_in_seconds: int = 86400 * 7) -> str:
+    def create_session_token(user_id: int, token_version: int = 1, expires_in_seconds: int = 86400 * 7) -> str:
         """Gera um token de sessão assinado com HMAC-SHA256 (independente de libs externas)."""
         payload = {
             "uid": user_id,
+            "ver": token_version,
             "exp": int(time.time()) + expires_in_seconds
         }
         data_json = json.dumps(payload, separators=(',', ':')).encode('utf-8')
@@ -132,8 +133,8 @@ class AuthService:
         return f"{data_b64}.{sig_b64}"
 
     @staticmethod
-    def decode_session_token(token: str) -> Optional[int]:
-        """Decodifica e valida a assinatura e expiração do token de sessão."""
+    def decode_session_payload(token: str) -> Optional[Dict[str, Any]]:
+        """Decodifica e valida a assinatura e expiração, retornando o payload completo."""
         if not token or "." not in token:
             return None
         try:
@@ -159,6 +160,14 @@ class AuthService:
             if int(time.time()) > payload.get("exp", 0):
                 return None  # Expirado
 
-            return payload.get("uid")
+            return payload
         except Exception:
             return None
+
+    @classmethod
+    def decode_session_token(cls, token: str) -> Optional[int]:
+        """Decodifica e retorna apenas o ID do usuário (retrocompatibilidade)."""
+        payload = cls.decode_session_payload(token)
+        if not payload:
+            return None
+        return payload.get("uid")

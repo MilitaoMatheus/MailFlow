@@ -33,7 +33,7 @@
                 <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ metrics.total_campaigns }}</h3>
                 <span class="text-xs text-slate-400 mt-1 inline-block">Criadas no seu perfil</span>
             </div>
-            <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
                 <i data-lucide="send" class="w-6 h-6"></i>
             </div>
         </div>
@@ -45,7 +45,7 @@
                 <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ metrics.total_contacts }}</h3>
                 <span class="text-xs text-slate-400 mt-1 inline-block">Na sua lista exclusiva</span>
             </div>
-            <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center">
+            <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
                 <i data-lucide="users" class="w-6 h-6"></i>
             </div>
         </div>
@@ -66,7 +66,7 @@
         <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Taxa de Sucesso</p>
-                <h3 class="text-2xl font-bold text-indigo-600 mt-1">{{ metrics.success_rate }}%</h3>
+                <h3 class="text-2xl font-bold text-blue-600 mt-1">{{ metrics.success_rate }}%</h3>
                 <span class="text-xs text-slate-400 mt-1 inline-block">Eficiência média de entrega</span>
             </div>
             <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
@@ -77,7 +77,7 @@
 
     <!-- Seção de Ações Rápidas -->
     <div class="flex flex-wrap items-center gap-3">
-        <a href="/campaigns/new" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-600/20 transition flex items-center gap-2">
+        <a href="/campaigns/new" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-sm shadow-blue-600/20 transition flex items-center gap-2">
             <i data-lucide="plus-circle" class="w-4 h-4"></i>
             Nova Campanha
         </a>
@@ -104,7 +104,7 @@
                     <h3 class="font-bold text-slate-800 text-sm">Últimas Campanhas</h3>
                     <p class="text-xs text-slate-400">Histórico recente de disparos realizados</p>
                 </div>
-                <a href="/campaigns" class="text-xs text-indigo-600 hover:underline font-semibold flex items-center gap-1">
+                <a href="/campaigns" class="text-xs text-blue-600 hover:underline font-semibold flex items-center gap-1">
                     Ver todas <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
                 </a>
             </div>
@@ -140,7 +140,7 @@
                             </td>
                             <td class="py-3.5 px-4 text-slate-500">{{ camp.created_at.strftime("%d/%m/%Y") }}</td>
                             <td class="py-3.5 px-4 text-right">
-                                <a href="/campaigns/{{ camp.id }}" class="text-indigo-600 hover:text-indigo-800 font-semibold">Ver Relatório</a>
+                                <a href="/campaigns/{{ camp.id }}" class="text-blue-600 hover:text-blue-800 font-semibold">Ver Relatório</a>
                             </td>
                         </tr>
                         {% else %}
@@ -166,7 +166,7 @@
                 <div class="space-y-3">
                     {% for log in recent_logs %}
                     <div class="flex items-start gap-2.5 text-xs">
-                        <div class="w-2 h-2 rounded-full bg-indigo-500 mt-1.5 flex-shrink-0"></div>
+                        <div class="w-2 h-2 rounded-full bg-blue-500 mt-1.5 flex-shrink-0"></div>
                         <div class="min-w-0 flex-1">
                             <p class="text-slate-700 font-medium leading-snug">{{ log.description }}</p>
                             <span class="text-[10px] text-slate-400">{{ log.created_at.strftime("%d/%m %H:%M") }}</span>

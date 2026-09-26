@@ -1,4 +1,5 @@
 import re
+import html
 from datetime import datetime, timezone
 from typing import List, Optional, Tuple, Dict, Any
 from sqlalchemy.orm import Session
@@ -123,17 +124,18 @@ class TemplateService:
         """Substitui variáveis dinâmicas e empacota Header, Body e Footer em documento HTML compatível com clientes de e-mail."""
         now_str = datetime.now(timezone.utc).strftime("%d/%m/%Y")
         
-        # Variáveis disponíveis para substituição
+        # Variáveis disponíveis para substituição com sanitização HTML contra XSS
         variables = {
-            "nome": contact_name or "Cliente",
-            "email": contact_email or "",
-            "empresa": company or "",
-            "data": now_str,
-            "nome_perfil": profile_name or "",
-            "link_descadastro": unsubscribe_url or "#"
+            "nome": html.escape(contact_name or "Cliente"),
+            "email": html.escape(contact_email or ""),
+            "empresa": html.escape(company or ""),
+            "data": html.escape(now_str),
+            "nome_perfil": html.escape(profile_name or ""),
+            "link_descadastro": html.escape(unsubscribe_url or "#", quote=True)
         }
         if extra_vars:
-            variables.update(extra_vars)
+            for k, v in extra_vars.items():
+                variables[k] = html.escape(str(v))
 
         def replace_vars(text: str) -> str:
             if not text:
@@ -170,8 +172,8 @@ class TemplateService:
         .email-header {{ background-color: #1e293b; color: #ffffff; padding: 24px; text-align: center; }}
         .email-body {{ padding: 32px 24px; line-height: 1.6; font-size: 15px; }}
         .email-footer {{ background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 20px 24px; font-size: 12px; color: #64748b; text-align: center; }}
-        a {{ color: #4f46e5; text-decoration: none; }}
-        .btn {{ display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: #ffffff !important; border-radius: 6px; font-weight: bold; text-decoration: none; margin: 16px 0; }}
+        a {{ color: #2563EB; text-decoration: none; }}
+        .btn {{ display: inline-block; padding: 12px 24px; background-color: #2563EB; color: #ffffff !important; border-radius: 6px; font-weight: bold; text-decoration: none; margin: 16px 0; }}
         img {{ max-width: 100%; height: auto; }}
     </style>
 </head>

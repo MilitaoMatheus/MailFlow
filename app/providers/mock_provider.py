@@ -30,6 +30,12 @@ class MockEmailProvider(BaseEmailProvider):
             message="Conexão com servidor Mock SMTP bem-sucedida!"
         )
 
+    def get_session(self) -> Optional[Any]:
+        return "mock_session"
+
+    def close_session(self, session: Any) -> None:
+        pass
+
     def send_email(
         self,
         to_email: str,
@@ -38,7 +44,8 @@ class MockEmailProvider(BaseEmailProvider):
         html_content: str,
         text_content: Optional[str] = None,
         unsubscribe_url: Optional[str] = None,
-        attachments: Optional[list] = None
+        attachments: Optional[list] = None,
+        active_connection: Optional[Any] = None
     ) -> EmailSendResult:
         domain = to_email.split("@")[-1].lower() if "@" in to_email else ""
 

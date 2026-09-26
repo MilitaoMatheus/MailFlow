@@ -173,3 +173,16 @@ class ContactRepository(BaseRepository):
         self.db.commit()
         self.db.refresh(contact)
         return contact
+
+    def get_all_emails_set(self, user_id: int) -> set:
+        """Retorna todos os e-mails cadastrados do perfil em um set para busca O(1)."""
+        rows = self.db.query(Contact.email).filter(Contact.user_id == user_id).all()
+        return {r[0].lower() for r in rows}
+
+    def bulk_create(self, contacts: List[Contact]) -> int:
+        """Insere uma lista de contatos em lote com um único commit."""
+        if not contacts:
+            return 0
+        self.db.add_all(contacts)
+        self.db.commit()
+        return len(contacts)

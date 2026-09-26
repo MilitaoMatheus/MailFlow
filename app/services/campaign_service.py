@@ -1,3 +1,5 @@
+import os
+import time
 from typing import List, Optional, Tuple, Dict, Any
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
@@ -120,6 +122,31 @@ class CampaignService:
 
         return True, "Campanha criada com sucesso!", campaign
 
+    def delete_campaign(self, user_id: int, campaign_id: int) -> Tuple[bool, str]:
+        """Exclui a campanha e remove fisicamente seus anexos do servidor."""
+        campaign = self.campaign_repo.get_by_id(user_id, campaign_id)
+        if not campaign:
+            return False, "Campanha não encontrada ou não pertence a este perfil."
+
+        # Remover arquivos físicos de anexos
+        if campaign.attachments:
+            for att in campaign.attachments:
+                try:
+                    if att.file_path and os.path.exists(att.file_path):
+                        os.remove(att.file_path)
+                except Exception:
+                    pass
+
+        campaign_name = campaign.name
+        self.campaign_repo.delete(user_id, campaign_id)
+
+        self.log_repo.create_log(
+            user_id=user_id,
+            action="CAMPANHA_EXCLUIDA",
+            description=f"Campanha '{campaign_name}' (ID {campaign_id}) excluída com sucesso."
+        )
+        return True, "Campanha excluída com sucesso!"
+
     def send_campaign(
         self,
         user_id: int,
@@ -130,6 +157,7 @@ class CampaignService:
         """
         Executa o disparo da campanha com processamento tolerante a falhas por lote.
         Uma falha em um destinatário não interrompe os demais envios.
+        Garante atualização de status mesmo em caso de erro fatal.
         """
         campaign = self.campaign_repo.get_by_id(user_id, campaign_id)
         if not campaign:
@@ -168,99 +196,135 @@ class CampaignService:
         invalid_count = 0
         ignored_count = 0
 
-        for r in recipients:
-            # 1. Validação de formato de e-mail pré-envio
-            is_valid_email, clean_email = SecurityService.validate_email_syntax(r.email)
-            if not is_valid_email:
-                invalid_count += 1
-                self.campaign_repo.update_recipient_status(
-                    campaign_contact_id=r.id,
-                    status=CampaignContactStatus.INVALIDO,
-                    error_message=f"E-mail com formato inválido: {r.email}"
-                )
-                continue
+        session = None
+        try:
+            session = provider.get_session()
+        except Exception:
+            session = None
 
-            # 2. Verificar status do contato no banco (se cadastrado)
-            contact = self.contact_repo.get_by_id(user_id, r.contact_id) if r.contact_id else None
-            if contact:
-                if contact.status == ContactStatus.DESCADASTRADO:
-                    ignored_count += 1
-                    self.campaign_repo.update_recipient_status(
-                        campaign_contact_id=r.id,
-                        status=CampaignContactStatus.IGNORADO,
-                        error_message="Destinatário solicitou descadastro previamente (Opt-out)."
-                    )
-                    continue
-                elif contact.status == ContactStatus.INATIVO:
-                    ignored_count += 1
-                    self.campaign_repo.update_recipient_status(
-                        campaign_contact_id=r.id,
-                        status=CampaignContactStatus.IGNORADO,
-                        error_message="Contato está inativo."
-                    )
-                    continue
-                elif contact.status == ContactStatus.INVALIDO:
+        final_status = CampaignStatus.CONCLUIDO
+        try:
+            for r in recipients:
+                # 1. Validação de formato de e-mail pré-envio
+                is_valid_email, clean_email = SecurityService.validate_email_syntax(r.email)
+                if not is_valid_email:
                     invalid_count += 1
                     self.campaign_repo.update_recipient_status(
                         campaign_contact_id=r.id,
                         status=CampaignContactStatus.INVALIDO,
-                        error_message="Contato marcado como inválido."
+                        error_message=f"E-mail com formato inválido: {r.email}"
                     )
                     continue
 
-            # 3. Montar link de descadastro
-            unsubscribe_token = contact.unsubscribe_token if contact else "optout"
-            unsubscribe_url = f"{base_url}/unsubscribe?token={unsubscribe_token}"
+                # 2. Verificar status do contato no banco (se cadastrado)
+                contact = self.contact_repo.get_by_id(user_id, r.contact_id) if r.contact_id else None
+                if contact:
+                    if contact.status == ContactStatus.DESCADASTRADO:
+                        ignored_count += 1
+                        self.campaign_repo.update_recipient_status(
+                            campaign_contact_id=r.id,
+                            status=CampaignContactStatus.IGNORADO,
+                            error_message="Destinatário solicitou descadastro previamente (Opt-out)."
+                        )
+                        continue
+                    elif contact.status == ContactStatus.INATIVO:
+                        ignored_count += 1
+                        self.campaign_repo.update_recipient_status(
+                            campaign_contact_id=r.id,
+                            status=CampaignContactStatus.IGNORADO,
+                            error_message="Contato está inativo."
+                        )
+                        continue
+                    elif contact.status == ContactStatus.INVALIDO:
+                        invalid_count += 1
+                        self.campaign_repo.update_recipient_status(
+                            campaign_contact_id=r.id,
+                            status=CampaignContactStatus.INVALIDO,
+                            error_message="Contato marcado como inválido."
+                        )
+                        continue
 
-            # 4. Renderizar e-mail com variáveis personalizadas
-            html_body = self.template_service.render_content(
-                header=template.header,
-                body=template.body,
-                footer=template.footer,
-                contact_name=r.name,
-                contact_email=clean_email,
-                company=contact.company if contact else None,
-                profile_name=user.name,
-                unsubscribe_url=unsubscribe_url
-            )
+                # 3. Montar link de descadastro
+                unsubscribe_token = contact.unsubscribe_token if contact else "optout"
+                unsubscribe_url = f"{base_url}/unsubscribe?token={unsubscribe_token}"
 
-            # 5. Realizar o disparo individual via Provider
-            send_res = provider.send_email(
-                to_email=clean_email,
-                to_name=r.name,
-                subject=campaign.subject,
-                html_content=html_body,
-                unsubscribe_url=unsubscribe_url,
-                attachments=attachments_list
-            )
-
-            if send_res.success:
-                sent_count += 1
-                self.campaign_repo.update_recipient_status(
-                    campaign_contact_id=r.id,
-                    status=CampaignContactStatus.ENVIADO
+                # 4. Renderizar e-mail com variáveis personalizadas
+                html_body = self.template_service.render_content(
+                    header=template.header,
+                    body=template.body,
+                    footer=template.footer,
+                    contact_name=r.name,
+                    contact_email=clean_email,
+                    company=contact.company if contact else None,
+                    profile_name=user.name,
+                    unsubscribe_url=unsubscribe_url
                 )
-            else:
-                failed_count += 1
-                self.campaign_repo.update_recipient_status(
-                    campaign_contact_id=r.id,
-                    status=CampaignContactStatus.FALHA,
-                    error_message=send_res.error_message or "Erro desconhecido durante o disparo SMTP."
+
+                # 5. Realizar o disparo individual via Provider
+                send_res = provider.send_email(
+                    to_email=clean_email,
+                    to_name=r.name,
+                    subject=campaign.subject,
+                    html_content=html_body,
+                    unsubscribe_url=unsubscribe_url,
+                    attachments=attachments_list,
+                    active_connection=session
                 )
 
-        # Atualizar campanha com status final
-        final_status = CampaignStatus.CONCLUIDO
-        now = datetime.now(timezone.utc)
-        
-        self.campaign_repo.update_campaign_progress(
-            campaign_id=campaign.id,
-            status=final_status,
-            total_sent=sent_count,
-            total_failed=failed_count,
-            total_invalid=invalid_count,
-            total_ignored=ignored_count,
-            sent_at=now
-        )
+                if send_res.success:
+                    sent_count += 1
+                    self.campaign_repo.update_recipient_status(
+                        campaign_contact_id=r.id,
+                        status=CampaignContactStatus.ENVIADO
+                    )
+                else:
+                    failed_count += 1
+                    self.campaign_repo.update_recipient_status(
+                        campaign_contact_id=r.id,
+                        status=CampaignContactStatus.FALHA,
+                        error_message=send_res.error_message or "Erro desconhecido durante o disparo SMTP."
+                    )
+
+                # Atualiza progresso contínuo no banco
+                self.campaign_repo.update_campaign_progress(
+                    campaign_id=campaign.id,
+                    status=CampaignStatus.PROCESSANDO,
+                    total_sent=sent_count,
+                    total_failed=failed_count,
+                    total_invalid=invalid_count,
+                    total_ignored=ignored_count
+                )
+
+                # Rate limiting de segurança (ativo se configurado e não for mock/teste)
+                if not getattr(settings, 'MOCK_EMAIL_SENDING', False) and getattr(settings, 'DEFAULT_RATE_LIMIT_PER_SECOND', 0) > 0 and settings.APP_ENV != "test":
+                    time.sleep(1.0 / settings.DEFAULT_RATE_LIMIT_PER_SECOND)
+
+            final_status = CampaignStatus.CONCLUIDO
+
+        except Exception as e:
+            final_status = CampaignStatus.FALHA
+            self.log_repo.create_log(
+                user_id=user_id,
+                action="CAMPANHA_ERRO",
+                description=f"Erro crítico durante disparo da campanha {campaign.id}: {str(e)}"
+            )
+        finally:
+            if session:
+                try:
+                    provider.close_session(session)
+                except Exception:
+                    pass
+
+            now = datetime.now(timezone.utc)
+            self.campaign_repo.update_campaign_progress(
+                campaign_id=campaign.id,
+                status=final_status,
+                total_sent=sent_count,
+                total_failed=failed_count,
+                total_invalid=invalid_count,
+                total_ignored=ignored_count,
+                sent_at=now
+            )
 
         self.log_repo.create_log(
             user_id=user_id,

@@ -12,10 +12,10 @@
             <div class="relative flex-1 min-w-[200px]">
                 <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
                 <input type="text" name="search" value="{{ search or '' }}" placeholder="Buscar por nome, e-mail ou empresa..."
-                    class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                    class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition">
             </div>
             
-            <select name="status_filter" class="py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <select name="status_filter" class="py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600">
                 <option value="">Todos os Status</option>
                 <option value="ATIVO" {% if status_filter == 'ATIVO' %}selected{% endif %}>Ativo</option>
                 <option value="INATIVO" {% if status_filter == 'INATIVO' %}selected{% endif %}>Inativo</option>
@@ -41,7 +41,7 @@
                 <i data-lucide="upload" class="w-3.5 h-3.5"></i>
                 Importar CSV
             </a>
-            <a href="/contacts/new" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5">
+            <a href="/contacts/new" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-sm shadow-blue-600/20 transition flex items-center gap-1.5">
                 <i data-lucide="plus" class="w-3.5 h-3.5"></i>
                 Novo Contato
             </a>
@@ -87,11 +87,11 @@
                         <td class="py-3.5 px-4 text-right">
                             <div class="flex items-center justify-end gap-2">
                                 <form method="POST" action="/contacts/{{ contact.id }}/toggle" class="inline">
-                                    <button type="submit" title="Alternar status Ativo/Inativo" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition">
+                                    <button type="submit" title="Alternar status Ativo/Inativo" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition">
                                         <i data-lucide="power" class="w-3.5 h-3.5"></i>
                                     </button>
                                 </form>
-                                <a href="/contacts/{{ contact.id }}/edit" title="Editar Contato" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition">
+                                <a href="/contacts/{{ contact.id }}/edit" title="Editar Contato" class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition">
                                     <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
                                 </a>
                                 <button @click="deleteId = {{ contact.id }}; deleteName = '{{ contact.name }}'; deleteModalOpen = true"
@@ -105,7 +105,7 @@
                     <tr>
                         <td colspan="6" class="py-12 text-center text-slate-400">
                             <i data-lucide="users" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
-                            Nenhum contato encontrado. <a href="/contacts/new" class="text-indigo-600 hover:underline font-semibold">Cadastre seu primeiro contato</a> ou <a href="/contacts/import" class="text-indigo-600 hover:underline font-semibold">importe via CSV</a>.
+                            Nenhum contato encontrado. <a href="/contacts/new" class="text-blue-600 hover:underline font-semibold">Cadastre seu primeiro contato</a> ou <a href="/contacts/import" class="text-blue-600 hover:underline font-semibold">importe via CSV</a>.
                         </td>
                     </tr>
                     {% endfor %}

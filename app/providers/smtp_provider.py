@@ -3,7 +3,7 @@ import socket
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formataddr, make_msgid, formatdate
-from typing import Optional
+from typing import Optional, Any
 from app.providers.base import BaseEmailProvider, EmailSendResult, ConnectionTestResult
 from app.models.email_account import SmtpSecurity
 
@@ -70,6 +70,24 @@ class SmtpEmailProvider(BaseEmailProvider):
                 message=f"Erro na conexão SMTP: {str(e)}"
             )
 
+    def get_session(self):
+        """Abre uma conexão SMTP ativa para ser reutilizada em lote."""
+        try:
+            return self._get_connection()
+        except Exception:
+            return None
+
+    def close_session(self, session) -> None:
+        """Encerra a conexão SMTP ativa de forma graciosa."""
+        if session:
+            try:
+                session.quit()
+            except Exception:
+                try:
+                    session.close()
+                except Exception:
+                    pass
+
     def send_email(
         self,
         to_email: str,
@@ -78,7 +96,8 @@ class SmtpEmailProvider(BaseEmailProvider):
         html_content: str,
         text_content: Optional[str] = None,
         unsubscribe_url: Optional[str] = None,
-        attachments: Optional[list] = None
+        attachments: Optional[list] = None,
+        active_connection: Optional[Any] = None
     ) -> EmailSendResult:
         """Cria a mensagem MIME e envia via SMTP."""
         import os
@@ -138,9 +157,24 @@ class SmtpEmailProvider(BaseEmailProvider):
                         part_att['Content-Disposition'] = f'attachment; filename="{name}"'
                         outer_msg.attach(part_att)
 
-            server = self._get_connection()
-            server.sendmail(self.sender_email, [to_email], outer_msg.as_string())
-            server.quit()
+            close_when_done = False
+            server = active_connection
+            if server is None:
+                server = self._get_connection()
+                close_when_done = True
+
+            try:
+                server.sendmail(self.sender_email, [to_email], outer_msg.as_string())
+            except (smtplib.SMTPServerDisconnected, socket.error):
+                # Se a conexão persistente caiu, reconecta uma vez
+                server = self._get_connection()
+                server.sendmail(self.sender_email, [to_email], outer_msg.as_string())
+            finally:
+                if close_when_done:
+                    try:
+                        server.quit()
+                    except Exception:
+                        pass
 
             return EmailSendResult(
                 success=True,

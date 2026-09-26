@@ -1,3 +1,4 @@
+import json
 from fastapi import APIRouter, Request, Depends, Form, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -7,6 +8,7 @@ from app.database import get_db
 from app.models.user import User
 from app.controllers.deps import require_auth_user
 from app.services.template_service import TemplateService
+from app.services.preset_templates import get_all_presets, compile_preset_html
 
 router = APIRouter(prefix="/templates", tags=["Templates"])
 templates = Jinja2Templates(directory=str(settings.TEMPLATES_DIR))
@@ -20,6 +22,7 @@ def list_templates(
 ):
     template_service = TemplateService(db)
     user_templates = template_service.list_templates(current_user.id)
+    presets = get_all_presets()
 
     return templates.TemplateResponse(
         request=request,
@@ -27,6 +30,7 @@ def list_templates(
         context={
             "user": current_user,
             "templates": user_templates,
+            "presets": presets,
             "active_menu": "templates"
         }
     )
@@ -35,23 +39,43 @@ def list_templates(
 @router.get("/new", response_class=HTMLResponse)
 def new_template_form(
     request: Request,
+    preset_id: str = "newsletter",
     current_user: User = Depends(require_auth_user)
 ):
-    default_header = '<h1 style="margin: 0; font-size: 24px; color: #ffffff;">{{empresa}}</h1>\n<p style="margin: 4px 0 0 0; font-size: 13px; color: #cbd5e1;">Novidades e Comunicações</p>'
-    default_body = '<h2>Olá, {{nome}}!</h2>\n<p>Temos o prazer de compartilhar nossas últimas novidades e ofertas exclusivas com você.</p>\n<p style="text-align: center; margin: 30px 0;">\n  <a href="#" class="btn">Acessar Nossa Plataforma</a>\n</p>\n<p>Qualquer dúvida, nossa equipe está à total disposição.</p>\n<p>Atenciosamente,<br><strong>{{nome_perfil}}</strong></p>'
-    default_footer = '<p style="margin: 0;">{{empresa}} &copy; {{data}} - Todos os direitos reservados.</p>\n<p style="margin: 5px 0 0 0;">Você está recebendo esta mensagem porque se cadastrou em nossa lista de novidades.</p>\n<p style="margin: 8px 0 0 0;"><a href="{{link_descadastro}}" style="color: #6366f1;">Cancelar inscrição</a></p>'
+    presets = get_all_presets()
+    selected_preset = next((p for p in presets if p["id"] == preset_id), presets[0])
+    
+    default_header, default_body, default_footer = compile_preset_html(
+        header_title=selected_preset["header_title"],
+        header_subtitle=selected_preset["header_subtitle"],
+        headline=selected_preset["headline"],
+        greeting=selected_preset["greeting"],
+        message=selected_preset["message"],
+        btn_text=selected_preset["btn_text"],
+        btn_url=selected_preset["btn_url"],
+        footer_note=selected_preset["footer_note"],
+        brand_color=selected_preset["brand_color"],
+        header_style=selected_preset["header_style"]
+    )
+
+    template_dict = {
+        "name": selected_preset["name"],
+        "header": default_header,
+        "body": default_body,
+        "footer": default_footer
+    }
 
     return templates.TemplateResponse(
         request=request,
         name="templates/form.html",
         context={
             "user": current_user,
-            "template": {
-                "name": "",
-                "header": default_header,
-                "body": default_body,
-                "footer": default_footer
-            },
+            "presets": presets,
+            "presets_json": json.dumps(presets),
+            "selected_preset": selected_preset,
+            "template": template_dict,
+            "template_json": json.dumps(template_dict),
+            "is_edit": False,
             "error": None,
             "active_menu": "templates"
         }
@@ -78,12 +102,19 @@ def create_template(
     )
 
     if not success:
+        presets = get_all_presets()
+        template_dict = {"name": name, "header": header, "body": body, "footer": footer}
         return templates.TemplateResponse(
             request=request,
             name="templates/form.html",
             context={
                 "user": current_user,
-                "template": {"name": name, "header": header, "body": body, "footer": footer},
+                "presets": presets,
+                "presets_json": json.dumps(presets),
+                "selected_preset": presets[0],
+                "template": template_dict,
+                "template_json": json.dumps(template_dict),
+                "is_edit": False,
                 "error": msg,
                 "active_menu": "templates"
             },
@@ -105,12 +136,26 @@ def edit_template_form(
     if not template:
         return RedirectResponse(url="/templates", status_code=status.HTTP_303_SEE_OTHER)
 
+    presets = get_all_presets()
+    template_dict = {
+        "id": template.id,
+        "name": template.name,
+        "header": template.header or "",
+        "body": template.body or "",
+        "footer": template.footer or ""
+    }
+
     return templates.TemplateResponse(
         request=request,
         name="templates/form.html",
         context={
             "user": current_user,
             "template": template,
+            "template_json": json.dumps(template_dict),
+            "is_edit": True,
+            "presets": presets,
+            "presets_json": json.dumps(presets),
+            "selected_preset": presets[0],
             "error": None,
             "active_menu": "templates"
         }
@@ -139,12 +184,19 @@ def update_template(
     )
 
     if not success:
+        presets = get_all_presets()
+        template_dict = {"id": template_id, "name": name, "header": header, "body": body, "footer": footer}
         return templates.TemplateResponse(
             request=request,
             name="templates/form.html",
             context={
                 "user": current_user,
-                "template": {"id": template_id, "name": name, "header": header, "body": body, "footer": footer},
+                "presets": presets,
+                "presets_json": json.dumps(presets),
+                "selected_preset": presets[0],
+                "template": template_dict,
+                "template_json": json.dumps(template_dict),
+                "is_edit": True,
                 "error": msg,
                 "active_menu": "templates"
             },

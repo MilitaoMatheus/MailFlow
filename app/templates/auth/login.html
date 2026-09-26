@@ -5,7 +5,7 @@
 {% block public_content %}
 <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-8 space-y-6">
     <div class="text-center space-y-2">
-        <div class="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center mx-auto shadow-lg shadow-indigo-500/30">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-blue-400 text-white flex items-center justify-center mx-auto shadow-md shadow-blue-500/25">
             <i data-lucide="mail" class="w-6 h-6"></i>
         </div>
         <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Acesse sua conta</h2>
@@ -26,7 +26,7 @@
                 <i data-lucide="at-sign" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400"></i>
                 <input type="email" id="email" name="email" value="{{ email or '' }}" required autofocus
                     placeholder="seu.email@empresa.com"
-                    class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                    class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition">
             </div>
         </div>
 
@@ -38,12 +38,12 @@
                 <i data-lucide="lock" class="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400"></i>
                 <input type="password" id="password" name="password" required
                     placeholder="••••••••"
-                    class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                    class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition">
             </div>
         </div>
 
         <button type="submit"
-            class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl text-sm shadow-md shadow-indigo-600/30 transition flex items-center justify-center gap-2">
+            class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-sm shadow-md shadow-blue-600/25 transition flex items-center justify-center gap-2">
             <span>Entrar no Sistema</span>
             <i data-lucide="arrow-right" class="w-4 h-4"></i>
         </button>
@@ -51,7 +51,7 @@
 
     <div class="text-center pt-4 border-t border-slate-100 text-xs text-slate-500">
         Não possui um perfil?
-        <a href="/register" class="text-indigo-600 font-semibold hover:underline">Cadastre-se gratuitamente</a>
+        <a href="/register" class="text-blue-600 font-semibold hover:underline">Cadastre-se gratuitamente</a>
     </div>
 </div>
 {% endblock %}

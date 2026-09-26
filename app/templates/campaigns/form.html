@@ -8,7 +8,7 @@
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 md:p-8 space-y-6">
         <div class="flex items-center justify-between border-b border-slate-100 pb-4">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
                     <i data-lucide="send" class="w-5 h-5"></i>
                 </div>
                 <div>
@@ -27,7 +27,7 @@
                 <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-600 flex-shrink-0"></i>
                 <span>Atenção: Você ainda não configurou seu servidor SMTP de envio.</span>
             </div>
-            <a href="/settings/email" class="text-indigo-600 font-bold hover:underline">Configurar SMTP</a>
+            <a href="/settings/email" class="text-blue-600 font-bold hover:underline">Configurar SMTP</a>
         </div>
         {% endif %}
 
@@ -45,14 +45,14 @@
                     <label for="name" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">Identificação Interna da Campanha *</label>
                     <input type="text" id="name" name="name" required
                         placeholder="Ex: Newsletter Semanal - Edição 42"
-                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition">
                 </div>
 
                 <div>
                     <label for="subject" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">Assunto do E-mail (Subject) *</label>
                     <input type="text" id="subject" name="subject" required
                         placeholder="Ex: 🚀 Novidades imperdíveis para você esta semana!"
-                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition">
                 </div>
             </div>
 
@@ -60,7 +60,7 @@
             <div>
                 <label for="template_id" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5">Template de E-mail *</label>
                 {% if templates %}
-                <select id="template_id" name="template_id" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <select id="template_id" name="template_id" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600">
                     <option value="">Selecione um dos seus templates...</option>
                     {% for t in templates %}
                     <option value="{{ t.id }}">{{ t.name }} (Criado em {{ t.created_at.strftime("%d/%m/%Y") }})</option>
@@ -68,7 +68,7 @@
                 </select>
                 {% else %}
                 <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 text-center text-xs text-slate-500">
-                    Nenhum template encontrado. <a href="/templates/new" class="text-indigo-600 font-bold hover:underline">Crie um template primeiro</a>.
+                    Nenhum template encontrado. <a href="/templates/new" class="text-blue-600 font-bold hover:underline">Crie um template primeiro</a>.
                 </div>
                 {% endif %}
             </div>
@@ -79,8 +79,8 @@
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <label class="p-4 rounded-xl border cursor-pointer transition flex items-start gap-3"
-                        :class="recipientMode === 'all' ? 'border-indigo-600 bg-indigo-50/40 text-indigo-900' : 'border-slate-200 bg-white text-slate-700'">
-                        <input type="radio" name="recipient_type" value="all" x-model="recipientMode" class="mt-0.5 text-indigo-600">
+                        :class="recipientMode === 'all' ? 'border-blue-600 bg-blue-50/40 text-blue-900' : 'border-slate-200 bg-white text-slate-700'">
+                        <input type="radio" name="recipient_type" value="all" x-model="recipientMode" class="mt-0.5 text-blue-600">
                         <div>
                             <span class="text-xs font-bold block">Todos os Contatos Ativos</span>
                             <span class="text-[11px] text-slate-500">{{ contacts|length }} contato(s) disponíveis</span>
@@ -88,8 +88,8 @@
                     </label>
 
                     <label class="p-4 rounded-xl border cursor-pointer transition flex items-start gap-3"
-                        :class="recipientMode === 'custom' ? 'border-indigo-600 bg-indigo-50/40 text-indigo-900' : 'border-slate-200 bg-white text-slate-700'">
-                        <input type="radio" name="recipient_type" value="custom" x-model="recipientMode" class="mt-0.5 text-indigo-600">
+                        :class="recipientMode === 'custom' ? 'border-blue-600 bg-blue-50/40 text-blue-900' : 'border-slate-200 bg-white text-slate-700'">
+                        <input type="radio" name="recipient_type" value="custom" x-model="recipientMode" class="mt-0.5 text-blue-600">
                         <div>
                             <span class="text-xs font-bold block">Selecionar Contatos Específicos</span>
                             <span class="text-[11px] text-slate-500">Escolha individualmente</span>
@@ -104,7 +104,7 @@
                     </div>
                     {% for c in contacts %}
                     <label class="flex items-center gap-2.5 text-xs text-slate-700 hover:bg-slate-100 p-1.5 rounded-lg cursor-pointer">
-                        <input type="checkbox" name="selected_contacts" value="{{ c.id }}" class="rounded text-indigo-600">
+                        <input type="checkbox" name="selected_contacts" value="{{ c.id }}" class="rounded text-blue-600 focus:ring-blue-500">
                         <span class="font-semibold text-slate-800">{{ c.name }}</span>
                         <span class="text-slate-400 font-mono text-[11px]">({{ c.email }})</span>
                         {% if c.company %}<span class="text-slate-400 text-[10px]">- {{ c.company }}</span>{% endif %}
@@ -120,7 +120,7 @@
                 <label for="files" class="block text-xs font-semibold uppercase tracking-wider text-slate-700">Anexar Arquivos (Opcional)</label>
                 <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
                     <input type="file" id="files" name="files" multiple accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.txt"
-                        class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                        class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                     <p class="text-[11px] text-slate-400">
                         Formatos aceitos: <strong>PDF, Word (DOC, DOCX), Imagens (PNG, JPG, JPEG) e Texto (TXT)</strong>. Limite de 5MB por arquivo.
                     </p>
@@ -132,7 +132,7 @@
                     Cancelar
                 </a>
                 <button type="submit" {% if not templates %}disabled{% endif %}
-                    class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-600/20 transition flex items-center gap-2">
+                    class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-semibold rounded-xl shadow-sm shadow-blue-600/20 transition flex items-center gap-2">
                     <i data-lucide="check" class="w-3.5 h-3.5"></i>
                     Criar e Ir para Envio
                 </button>

@@ -1,19 +1,67 @@
 {% extends "base.html" %}
 
 {% block page_title %}Templates de E-mail{% endblock %}
-{% block page_subtitle %}Modelos de e-mail modulares divididos em Header, Body e Footer.{% endblock %}
+{% block page_subtitle %}Modelos de e-mail profissionais para disparos rápidos, newsletters e campanhas de conversão.{% endblock %}
 
 {% block content %}
-<div class="space-y-6" x-data="{ previewModalOpen: false, previewUrl: '', previewTitle: '', deleteModalOpen: false, deleteId: null, deleteName: '' }">
-    <!-- Top Action Bar -->
+<div class="space-y-6" x-data="{ previewModalOpen: false, previewUrl: '', previewTitle: '', deleteModalOpen: false, deleteId: null, deleteName: '', supportModalOpen: false }">
+
+    <!-- Banner de Modelos Prontos & Suporte Sob Medida -->
+    <div class="bg-gradient-to-r from-[#0F172A] via-slate-800 to-[#0F172A] rounded-2xl p-6 text-white shadow-lg space-y-4 border border-slate-800">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5 text-blue-400"></i>
+                    Criador Sem Código
+                </span>
+                <h3 class="text-lg font-bold text-white tracking-tight">Comece com um Modelo Pronto</h3>
+                <p class="text-xs text-slate-300 max-w-xl">
+                    Selecione um layout predefinido com prévia instantânea, personalize suas cores corporativas e envie e-mails compatíveis com todos os leitores.
+                </p>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+                <button type="button" @click="supportModalOpen = true"
+                    class="px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+                    <i data-lucide="headset" class="w-3.5 h-3.5"></i>
+                    Template sob Medida
+                </button>
+                <a href="/templates/new"
+                    class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl shadow-md shadow-blue-600/25 transition flex items-center gap-1.5">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                    Novo Template
+                </a>
+            </div>
+        </div>
+
+        <!-- Atalhos Rápidos dos Modelos Prontos -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 pt-2">
+            {% for p in presets %}
+            <a href="/templates/new?preset_id={{ p.id }}"
+                class="p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-blue-400/40 transition group flex flex-col justify-between space-y-2">
+                <div class="flex items-center justify-between">
+                    <span :style="`color: '{{ p.brand_color }}';`" class="text-blue-400 group-hover:text-blue-300 font-bold">
+                        <i data-lucide="{{ p.icon }}" class="w-4 h-4"></i>
+                    </span>
+                    <span class="text-[10px] text-slate-400 font-medium group-hover:text-white transition">&rarr;</span>
+                </div>
+                <div>
+                    <h5 class="text-xs font-bold text-white group-hover:text-blue-200 transition line-clamp-1">{{ p.name }}</h5>
+                    <span class="text-[10px] text-slate-400">{{ p.badge }}</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Top Action Bar (Lista de Templates do Usuário) -->
     <div class="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
         <div class="flex items-center gap-3">
-            <span class="text-xs font-semibold text-slate-500">Seus Templates:</span>
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700">{{ templates|length }} cadastrado(s)</span>
+            <span class="text-xs font-semibold text-slate-500">Seus Templates Salvos:</span>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700">{{ templates|length }} cadastrado(s)</span>
         </div>
-        <a href="/templates/new" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5">
+        <a href="/templates/new" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-sm shadow-blue-600/20 transition flex items-center gap-1.5">
             <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-            Novo Template
+            Criar Template
         </a>
     </div>
 
@@ -23,7 +71,7 @@
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition">
             <div class="space-y-3">
                 <div class="flex items-center justify-between">
-                    <span class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                    <span class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
                         <i data-lucide="layout" class="w-5 h-5"></i>
                     </span>
                     <span class="text-[11px] text-slate-400 font-medium">Criado em {{ t.created_at.strftime("%d/%m/%Y") }}</span>
@@ -39,13 +87,13 @@
 
             <div class="pt-6 mt-4 border-t border-slate-100 flex items-center justify-between gap-2">
                 <button @click="previewUrl = '/templates/{{ t.id }}/preview'; previewTitle = '{{ t.name }}'; previewModalOpen = true"
-                    class="px-3 py-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 text-xs font-semibold rounded-lg transition flex items-center gap-1.5">
+                    class="px-3 py-1.5 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-700 text-xs font-semibold rounded-lg transition flex items-center gap-1.5">
                     <i data-lucide="eye" class="w-3.5 h-3.5"></i>
                     Prévia
                 </button>
 
                 <div class="flex items-center gap-1">
-                    <a href="/templates/{{ t.id }}/edit" class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Editar">
+                    <a href="/templates/{{ t.id }}/edit" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar">
                         <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
                     </a>
                     <button @click="deleteId = {{ t.id }}; deleteName = '{{ t.name }}'; deleteModalOpen = true"
@@ -56,12 +104,14 @@
             </div>
         </div>
         {% else %}
-        <div class="col-span-full py-16 bg-white rounded-2xl border border-slate-200/80 text-center text-slate-400 shadow-sm">
-            <i data-lucide="layers" class="w-12 h-12 mx-auto mb-3 text-slate-300"></i>
-            <h4 class="text-sm font-bold text-slate-700">Nenhum template criado ainda</h4>
-            <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">Crie seu primeiro modelo de newsletter particionado em Header, Body e Footer com variáveis automáticas.</p>
-            <a href="/templates/new" class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-md transition">
-                <i data-lucide="plus" class="w-4 h-4"></i> Criar Primeiro Template
+        <div class="col-span-full py-16 bg-white rounded-2xl border border-slate-200/80 text-center text-slate-400 shadow-sm space-y-3">
+            <i data-lucide="layers" class="w-12 h-12 mx-auto text-slate-300"></i>
+            <div>
+                <h4 class="text-sm font-bold text-slate-700">Nenhum template personalizado salvo ainda</h4>
+                <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">Você pode escolher um modelo pronto acima ou criar um novo layout particionado com o construtor visual.</p>
+            </div>
+            <a href="/templates/new" class="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-md transition">
+                <i data-lucide="sparkles" class="w-4 h-4"></i> Criar com Modelo Pronto
             </a>
         </div>
         {% endfor %}
@@ -72,7 +122,7 @@
         <div @click.away="previewModalOpen = false" class="bg-white rounded-2xl max-w-2xl w-full h-[80vh] flex flex-col shadow-2xl overflow-hidden">
             <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
                 <div class="flex items-center gap-2">
-                    <i data-lucide="eye" class="w-4 h-4 text-indigo-600"></i>
+                    <i data-lucide="eye" class="w-4 h-4 text-blue-600"></i>
                     <h4 class="font-bold text-slate-800 text-sm" x-text="'Prévia: ' + previewTitle"></h4>
                 </div>
                 <button @click="previewModalOpen = false" class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg">
@@ -103,5 +153,68 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal de Suporte: Template Sob Medida -->
+    <div x-show="supportModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div @click.away="supportModalOpen = false" class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-150">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/20">
+                        <i data-lucide="headset" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-base">Solicitar Template Personalizado</h4>
+                        <p class="text-xs text-slate-400">Criamos um layout 100% sob medida para sua marca</p>
+                    </div>
+                </div>
+                <button type="button" @click="supportModalOpen = false" class="p-1 text-slate-400 hover:text-slate-700 rounded-lg">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Precisa de uma diagramação especial, catálogo de produtos, branding avançado ou importação de design do Figma? Fale com nosso suporte especializado:
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <!-- Canal WhatsApp -->
+                <a href="https://wa.me/5511999999999?text=Ol%C3%A1%20equipe%20MailFlow!%20Gostaria%20de%20solicitar%20um%20template%20de%20e-mail%20personalizado%20para%20minha%20empresa." target="_blank"
+                    class="p-4 rounded-xl border border-emerald-200 bg-emerald-50/50 hover:bg-emerald-100/60 text-emerald-900 transition flex flex-col justify-between space-y-2 group">
+                    <div class="flex items-center justify-between">
+                        <span class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold">
+                            <i data-lucide="message-circle" class="w-4 h-4"></i>
+                        </span>
+                        <i data-lucide="external-link" class="w-3.5 h-3.5 text-emerald-600 opacity-60 group-hover:opacity-100"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-xs">WhatsApp Comercial</div>
+                        <div class="text-[11px] text-emerald-700">Atendimento rápido</div>
+                    </div>
+                </a>
+
+                <!-- Canal E-mail -->
+                <a href="mailto:suporte@mailflow.com.br?subject=Solicita%C3%A7%C3%A3o%20de%20Template%20Personalizado&body=Ol%C3%A1%2C%20gostaria%20de%20um%20template%20com%20as%20seguintes%20caracter%C3%ADsticas%3A%0A-%20Objetivo%3A%20%0A-%20Identidade%20Visual%3A%20%0A-%20Estrutura%20Desejada%3A%20"
+                    class="p-4 rounded-xl border border-blue-200 bg-blue-50/50 hover:bg-blue-100/60 text-blue-900 transition flex flex-col justify-between space-y-2 group">
+                    <div class="flex items-center justify-between">
+                        <span class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold">
+                            <i data-lucide="mail" class="w-4 h-4"></i>
+                        </span>
+                        <i data-lucide="external-link" class="w-3.5 h-3.5 text-blue-600 opacity-60 group-hover:opacity-100"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-xs">E-mail de Suporte</div>
+                        <div class="text-[11px] text-blue-700">suporte@mailflow.com.br</div>
+                    </div>
+                </a>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-end">
+                <button type="button" @click="supportModalOpen = false" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
 </div>
 {% endblock %}

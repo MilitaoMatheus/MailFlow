@@ -49,7 +49,7 @@
         {% endif %}
 
         <div class="pt-2 flex justify-end">
-            <a href="/contacts" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl transition">
+            <a href="/contacts" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition">
                 Ver Lista de Contatos
             </a>
         </div>
@@ -60,7 +60,7 @@
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 md:p-8 space-y-6">
         <div class="flex items-center justify-between border-b border-slate-100 pb-4">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
                     <i data-lucide="file-up" class="w-5 h-5"></i>
                 </div>
                 <div>
@@ -81,18 +81,18 @@
         {% endif %}
 
         <form method="POST" action="/contacts/import" enctype="multipart/form-data" class="space-y-6">
-            <div class="border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center hover:border-indigo-400 transition bg-slate-50/50">
-                <i data-lucide="upload-cloud" class="w-12 h-12 mx-auto text-indigo-500 mb-3"></i>
+            <div class="border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center hover:border-blue-400 transition bg-slate-50/50">
+                <i data-lucide="upload-cloud" class="w-12 h-12 mx-auto text-blue-500 mb-3"></i>
                 <p class="text-sm font-semibold text-slate-700 mb-1">Escolha o arquivo CSV do seu computador</p>
                 <p class="text-xs text-slate-400 mb-4">Arquivos .csv de até 10MB</p>
                 <input type="file" name="file" accept=".csv,text/csv" required
-                    class="block w-full max-w-xs mx-auto text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    class="block w-full max-w-xs mx-auto text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
             </div>
 
             <!-- Exemplo de Formato Aceito -->
             <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/80">
                 <h5 class="text-xs font-bold text-slate-700 mb-2 flex items-center gap-1.5">
-                    <i data-lucide="info" class="w-3.5 h-3.5 text-indigo-600"></i> Formato de Cabeçalhos Recomendado:
+                    <i data-lucide="info" class="w-3.5 h-3.5 text-blue-600"></i> Formato de Cabeçalhos Recomendado:
                 </h5>
                 <pre class="bg-slate-900 text-slate-200 p-3 rounded-lg text-[11px] font-mono overflow-x-auto">nome;email;empresa;telefone
 Maria Silva;maria@empresa.com;Empresa Alfa;(11) 98888-7777
@@ -103,7 +103,7 @@ João Santos;joao@teste.com;Beta Corp;(21) 97777-6666</pre>
                 <a href="/contacts" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition">
                     Cancelar
                 </a>
-                <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl shadow-md shadow-indigo-600/20 transition flex items-center gap-2">
+                <button type="submit" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-sm shadow-blue-600/20 transition flex items-center gap-2">
                     <i data-lucide="upload" class="w-3.5 h-3.5"></i>
                     Processar Importação
                 </button>

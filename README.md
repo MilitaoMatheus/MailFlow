@@ -1,17 +1,25 @@
-# ✉️ MailFlow - Sistema de Gerenciamento e Envio de E-mails/Newsletters
+# ✉️ MailFlow - Sistema de Gerenciamento e Envio de E-mails & Newsletters
 
-> Plataforma multiusuário, modular, segura e escalável para gerenciamento de contatos, criação de templates particionados (Header, Body, Footer), configuração individual de contas de e-mail/SMTP com criptografia, suporte a anexos múltiplos (PDF, Word, imagens) e disparo de campanhas com relatórios analíticos de entrega.
+> **MailFlow** é uma plataforma multiusuário, modular, moderna e escalável para gerenciamento de contatos, criação de campanhas de e-mail com construtor visual sem código (*Zero HTML*), suporte a anexos múltiplos (PDF, Word, imagens), configuração individual de contas de e-mail/SMTP com criptografia de ponta e relatórios analíticos de entrega em tempo real.
 
 ---
 
 ## 🌟 1. Visão Geral e Conceito
 
-O **MailFlow** foi projetado seguindo uma arquitetura em camadas e princípios **SOLID**, oferecendo separação clara entre usuários, contatos, templates, campanhas e servidores de envio.
+O **MailFlow** foi desenvolvido seguindo arquitetura em camadas e princípios **SOLID**, combinando segurança corporativa com uma experiência visual fluida e moderna voltada para produtos SaaS de alta produtividade.
+
+### 🎨 Nova Identidade Visual & Design System
+A interface foi projetada para transmitir **tecnologia, comunicação, confiança e profissionalismo**:
+* **Azul Principal (`#2563EB`)**: Ações primárias, links, destaques de navegação e botões de chamada para ação (CTA).
+* **Azul Claro (`#60A5FA`)**: Gradiente da marca e acentos visuais.
+* **Azul Marinho / Slate 900 (`#0F172A`)**: Sidebar estrutural de alto contraste e cabeçalhos escuros sóbrios.
+* **Fundo Slate 50 (`#F8FAFC`) e Branco Puro (`#FFFFFF`)**: Superfícies limpas com excelente legibilidade e conforto visual.
+* **Cores Semânticas de Alta Precisão**: Verde Sucesso (`#22C55E`), Vermelho Erro (`#EF4444`) e Amarelo Alerta (`#F59E0B`).
 
 ### 🔒 Isolamento Rigoroso de Perfis (Multi-Tenancy)
 ```
-Perfil 1 (João)  ──>  Conta SMTP Própria  ──>  Templates Próprios  ──>  Contatos Próprios  ──>  Campanhas Próprias
-Perfil 2 (Maria) ──>  Conta SMTP Própria  ──>  Templates Próprios  ──>  Contatos Próprios  ──>  Campanhas Próprias
+Perfil 1 (Empresa A) ──> Conta SMTP Própria ──> Templates Próprios ──> Contatos Próprios ──> Campanhas Próprias
+Perfil 2 (Empresa B) ──> Conta SMTP Própria ──> Templates Próprios ──> Contatos Próprios ──> Campanhas Próprias
 ```
 Os dados de um perfil **nunca** são compartilhados ou acessíveis por outro perfil, seja via interface web ou requisições diretas de API.
 
@@ -19,11 +27,12 @@ Os dados de um perfil **nunca** são compartilhados ou acessíveis por outro per
 
 ## 🏗️ 2. Arquitetura do Sistema
 
-A aplicação segue a separação em 4 camadas fundamentais:
+A aplicação segue separação em camadas bem definidas e desacopladas:
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│                   INTERFACE WEB (HTML5, Tailwind, Alpine.js)             │
+│             INTERFACE WEB (HTML5, Tailwind CSS CDN, Alpine.js)           │
+│     Design System SaaS • Construtor Semântico • Prévia Fixa ao Vivo     │
 └────────────────────────────────────┬─────────────────────────────────────┘
                                      │ HTTP (Forms / API)
 ┌────────────────────────────────────▼─────────────────────────────────────┐
@@ -34,11 +43,11 @@ A aplicação segue a separação em 4 camadas fundamentais:
 ┌────────────────────────────────────▼─────────────────────────────────────┐
 │                   SERVICES (Regras de Negócio e Orquestração)            │
 │   AuthService • ContactService • TemplateService • CampaignService       │
-│   EmailService • SecurityService • LogService                            │
+│   EmailService • SecurityService • PresetService • LogService            │
 └──────────────────┬───────────────────────────────────┬───────────────────┘
                    │                                   │
 ┌──────────────────▼─────────────────┐   ┌─────────────▼───────────────────┐
-│ EMAIL PROVIDERS (Envio Agnostico)  │   │ REPOSITORIES (Acesso a Dados)   │
+│ EMAIL PROVIDERS (Envio Agnóstico)  │   │ REPOSITORIES (Acesso a Dados)   │
 │ • SmtpEmailProvider (SSL/STARTTLS) │   │ (Filtros estritos por user_id)  │
 │ • MockEmailProvider (Dev/Testes)   │   └─────────────┬───────────────────┘
 │ • [Futuro: SES, SendGrid, Mailgun] │                 │
@@ -49,72 +58,77 @@ A aplicação segue a separação em 4 camadas fundamentais:
 
 ---
 
-## 🚀 3. Funcionalidades Implementadas (MVP Completo)
+## 🚀 3. Funcionalidades Principais
 
-### 🔐 3.1 Autenticação & Perfis
-- Cadastro de perfis com validação de dados.
-- Login e Logout com cookies seguros `HttpOnly` assinados via **HMAC-SHA256**.
-- Hashing de senhas com algoritmo seguro **PBKDF2-SHA256** (100.000 iterações + salt aleatório de 16 bytes).
-- Alteração de senha no perfil.
+### 🎨 3.1 Construtor Visual de Templates Sem Código (*Zero HTML*)
+* **Criação Descomplicada**: O usuário não precisa escrever uma única linha de HTML. O layout é montado através de campos semânticos amigáveis (Logotipo/Topo, Saudação, Headline, Mensagem com quebra automática de parágrafos, Botão CTA e Rodapé).
+* **Presets de Modelos Prontos**:
+  * 📰 *Newsletter / Resumo Semanal* (Conteúdos, novidades e artigos)
+  * 🏷️ *Oferta Comercial / Promoção* (Lançamentos de produtos e descontos com alta conversão)
+  * 🔔 *Comunicado Oficial / Aviso* (Atualizações institucionais, avisos e termos)
+  * 🤝 *Boas-Vindas / Onboarding* (Apresentação de serviços e primeiro contato)
+* **Customização de Cores & Estilo da Marca**:
+  * Paleta Rápida (*Azul MailFlow, Azul Céu, Verde Esmeralda, Roxo Moderno, Laranja, Rosa, Grafite*) ou seletor nativo de cor hexadecimal.
+  * Estilos de cabeçalho: 🌙 *Escuro Sóbrio*, 🎨 *Cor da Marca*, ☀️ *Claro Clean*.
+* **Painel com Prévia Fixa ao Vivo (Desktop & Mobile)**:
+  * A prévia do e-mail permanece totalmente visível e fixa na lateral direita enquanto o usuário edita o formulário à esquerda.
+  * Alternador dinâmico de viewport (Desktop e simulação de smartphone Mobile).
+* **Inserção de Tags Dinâmicas com 1 Clique**:
+  * `{{nome}}`: Nome do contato destinatário.
+  * `{{empresa}}`: Empresa do contato ou organização.
+  * `{{email}}`: E-mail de destino.
+  * `{{data}}`: Data atual formatada (DD/MM/AAAA).
+  * `{{nome_perfil}}`: Nome do remetente / perfil emissor.
+  * `{{link_descadastro}}`: Link criptografado e exclusivo de descadastro (opt-out).
+* **Suporte a Modelos Sob Medida**:
+  * Modal integrado para solicitação de templates personalizados diretamente via WhatsApp Comercial ou E-mail da equipe de suporte.
 
-### 🛡️ 3.2 Segurança & Criptografia SMTP
-- Suporte a múltiplos provedores (Gmail, Outlook/Office 365, Mailgun, Amazon SES ou qualquer servidor SMTP genérico).
-- **Criptografia Simétrica**: Credenciais SMTP (senhas e App Passwords) são criptografadas em repouso no banco de dados via **AES-GCM / Fernet**.
-- **Logs Seguros**: Nenhuma senha ou credencial sensível é registrada em logs ou na base de auditoria.
-- Botão interativo **"Testar Conexão SMTP"** em tempo real com diagnóstico de conexão.
+### 📢 3.2 Campanhas, Anexos Múltiplos & Tolerância a Falhas
+* Criação de campanhas com seleção de template, assunto e público (base completa ou contatos selecionados).
+* **Suporte a Anexos Múltiplos**:
+  * Upload de múltiplos arquivos (PDF, Word DOC/DOCX, Imagens PNG/JPG/JPEG, Texto TXT) de até **5MB por arquivo**.
+  * Sanitização rigorosa de nomes de arquivos para evitar path traversal e vulnerabilidades de sistema.
+  * Armazenamento seguro e descarte automático de anexos órfãos quando uma campanha é excluída.
+  * Envio via protocolo SMTP estruturado em multipart/mixed.
+* **Disparo Resiliente em Lote**:
+  * Falhas pontuais em destinatários específicos **não interrompem** o restante do lote.
+  * Registro detalhado de cada resultado: `ENVIADO`, `FALHA`, `INVALIDO`, `IGNORADO`.
+* **Relatório Analítico em Tempo Real**:
+  * Contadores em cards semânticos, taxa percentual de sucesso e visualização individual de logs de cada envio.
 
-### 👥 3.3 Gerenciamento de Contatos
-- Cadastro, edição, exclusão e alternância de status (Ativar/Desativar).
-- Validação sintática rigorosa de e-mails no cadastro e pré-disparo (RFC 5322).
-- Estados de contato: `ATIVO`, `INATIVO`, `INVALIDO`, `DESCADASTRADO`.
-- **Importação CSV**: Detecção automática de delimitadores (`,` ou ';'), mapeamento flexível de colunas, validação e deduplicação automática com relatório.
-- **Exportação CSV**: Download da base completa de contatos do perfil.
+### 👥 3.3 Gestão de Contatos & Importação de Alta Performance
+* CRUD completo com status: `ATIVO`, `INATIVO`, `INVALIDO`, `DESCADASTRADO`.
+* Validação sintática rigorosa de e-mails em conformidade com a RFC 5322.
+* **Importação CSV em Massa**: Detecção automática de delimitadores (`,` ou `;`), mapeamento de colunas, deduplicação em memória e inserção em lote de alto desempenho.
+* **Exportação CSV**: Exportação instantânea dos contatos do perfil ativo.
 
-### 🎨 3.4 Templates Particionados & Variáveis Dinâmicas
-- Estrutura em 3 blocos independentes:
-  - **HEADER**: Logotipo, identidade visual, cores e cabeçalho.
-  - **BODY**: Conteúdo principal da mensagem, textos, imagens e chamadas para ação.
-  - **FOOTER**: Informações da empresa, redes sociais e link de descadastro obrigatório.
-- **Motor de Interpolação de Variáveis**:
-  - `{{nome}}`: Nome do contato destinatário.
-  - `{{email}}`: E-mail do destinatário.
-  - `{{empresa}}`: Empresa do destinatário.
-  - `{{data}}`: Data atual formatada (DD/MM/AAAA).
-  - `{{nome_perfil}}`: Nome do remetente / perfil.
-  - `{{link_descadastro}}`: Link exclusivo de descadastro com token seguro.
-- **Pré-visualização Interativa**: Modal com iframe renderizando o template formatado com dados de exemplo.
+### 🛑 3.4 Descadastro Automático (*Opt-Out*)
+* Todo e-mail compilado inclui link de descadastro com token seguro de 32 bytes (`/unsubscribe?token=...`).
+* Inclusão de cabeçalhos RFC 2369 e RFC 8058 (`List-Unsubscribe` e `List-Unsubscribe-Post`).
+* Atualização imediata do contato para o estado `DESCADASTRADO`, impedindo envios futuros automaticamente.
 
-### 📢 3.5 Campanhas, Anexos & Disparo Tolerante a Falhas
-- Criação de campanhas com seleção de template e público (todos os contatos ativos ou seleção personalizada).
-- **Suporte a Anexos Múltiplos**:
-  - Upload direto de arquivos (PDF, Word DOC/DOCX, Imagens PNG/JPG/JPEG, Texto TXT) de até **5MB por arquivo** durante a criação da campanha.
-  - Armazenamento em diretório local do servidor (`uploads/`) isolado por usuário, salvando apenas metadados no banco de dados. Os anexos são excluídos automaticamente se a criação da campanha for cancelada ou se ela for deletada.
-  - Envio estruturado através do protocolo SMTP em formato `mixed` multipart.
-- **Envio Resiliente por Lote**:
-  - A falha no envio para um destinatário **não interrompe** o disparo dos demais contatos da campanha.
-  - Registro individual do resultado de cada destinatário (`ENVIADO`, `FALHA`, `INVALIDO`, `IGNORADO`) com a causa do erro.
-- **Relatório Analítico Pós-Campanha**:
-  - Total de destinatários, enviados com sucesso, falhas, inválidos, ignorados e taxa de sucesso percentual (%).
-  - Tabela detalhada de cada disparo individual e exibição da lista de anexos vinculados.
-
-### 🛑 3.6 Descadastro Automático (*Opt-Out*)
-- Todo e-mail gerado inclui link dinâmico de descadastro com token seguro de 32 bytes (`/unsubscribe?token=...`).
-- Cabeçalhos RFC 2369 e RFC 8058 (`List-Unsubscribe` e `List-Unsubscribe-Post`).
-- Ao clicar no link, o status do contato é alterado imediatamente para `DESCADASTRADO` e campanhas futuras ignoram esse contato automaticamente.
+### 🛡️ 3.5 Segurança, Criptografia & Sessões
+* **Criptografia Simétrica de Senhas SMTP**: Credenciais de servidores SMTP armazenadas em repouso com algoritmo **AES-GCM / Fernet**.
+* **Proteção contra XSS**: Sanitização de templates HTML com biblioteca `Bleach`.
+* **Invalidação de Sessão**: Versionamento de tokens de sessão (`token_version`), garantindo que a alteração de senha revogue automaticamente logins em outros dispositivos.
+* **Hashing Robusto**: Senhas de acesso geradas via **PBKDF2-SHA256** com salt de 16 bytes e 100.000 iterações.
+* **Cookies de Sessão**: Cookies `HttpOnly`, `SameSite=Lax` assinados via **HMAC-SHA256**.
+* **Diagnóstico SMTP**: Ferramenta integrada "Testar Conexão" para validação imediata de servidores antes dos disparos.
 
 ---
 
 ## 💻 4. Guia de Instalação e Execução Local
 
 ### Pré-requisitos
-- Python 3.10+ (ou superior)
+* Python 3.10+ (ou superior)
 
-### 1. Clonar ou Acessar a Pasta do Projeto
+### 1. Clonar o Repositório
 ```bash
+git clone https://github.com/MilitaoMatheus/MailFlow.git
 cd MailFlow
 ```
 
-### 2. Criar e Ativar Ambiente Virtual (Opcional, mas Recomendado)
+### 2. Criar e Ativar Ambiente Virtual
 ```bash
 # Windows
 python -m venv venv
@@ -131,7 +145,7 @@ pip install -r requirements.txt
 ```
 
 ### 4. Configurar Variáveis de Ambiente
-Copie o arquivo de exemplo e ajuste se necessário (o banco SQLite será criado automaticamente):
+Copie o arquivo de exemplo (o banco SQLite local será inicializado automaticamente):
 ```bash
 cp .env.example .env
 ```
@@ -140,86 +154,62 @@ cp .env.example .env
 ```bash
 python run.py
 ```
-Acesse no navegador: **`http://localhost:8000`**
+Acesse no seu navegador: **`http://localhost:8000`**
 
 ---
 
-## ⚙️ 5. Guia de Configuração SMTP
+## ⚙️ 5. Configuração de Servidores SMTP
 
-Para realizar disparos reais, acesse a aba **Configurações SMTP** no painel da aplicação.
+No menu **Configurações SMTP**, utilize os presets rápidos ou configure manualmente:
 
-### Configuração com Gmail:
-1. Acesse sua Conta Google -> **Segurança** -> **Verificação em 2 etapas** (deve estar ativada).
-2. Vá em **Senhas de app** (App Passwords) e gere uma senha de 16 caracteres para "MailFlow".
-3. No MailFlow, configure:
-   - **Remetente:** Seu Nome ou Empresa
-   - **E-mail:** `seu-email@gmail.com`
-   - **Servidor SMTP:** `smtp.gmail.com`
-   - **Porta:** `587`
-   - **Usuário:** `seu-email@gmail.com`
-   - **Senha:** A senha de app gerada de 16 letras
-   - **Segurança:** `STARTTLS`
-4. Clique em **Salvar** e depois em **Testar Conexão**.
-
-### Configuração com Outlook / Microsoft 365:
-- **Servidor:** `smtp.office365.com`
-- **Porta:** `587`
-- **Segurança:** `STARTTLS`
+### Exemplo com Gmail:
+1. Acesse sua Conta Google -> **Segurança** -> **Verificação em 2 etapas**.
+2. Gere uma **Senha de app** (*App Password*) para o "MailFlow".
+3. Preencha no painel:
+   * **Host:** `smtp.gmail.com` | **Porta:** `587` | **Segurança:** `STARTTLS`
+   * **Usuário:** seu endereço `@gmail.com`
+   * **Senha:** a senha de app de 16 dígitos
+4. Clique em **Salvar** e valide no botão **Testar Conexão**.
 
 ---
 
 ## 🧪 6. Testes Automatizados
 
-O projeto conta com suíte de testes com **100% de aprovação** cobrindo todas as regras de negócio:
+O MailFlow possui uma suíte com **25 testes automatizados com 100% de aprovação**:
 
 ```bash
-# Executar todos os testes com saída detalhada
 python -m pytest -v
 ```
 
-### Cobertura de Testes:
-- `tests/test_auth.py`: Fluxo de registro, login, senha incorreta, usuário inexistente, integridade de tokens HMAC.
-- `tests/test_isolation.py`: Isolamento rigoroso multi-tenant entre Usuário A e Usuário B em contatos, templates, campanhas e SMTP.
-- `tests/test_validation.py`: Validação de e-mails RFC 5322 (válidos, inválidos, com espaços) e ciclo de vida de status de contatos.
-- `tests/test_templates.py`: Montagem de blocos Header/Body/Footer e substituição de tags `{{nome}}`, `{{link_descadastro}}`, etc.
-- `tests/test_campaigns.py`: Execução de campanhas por lote com tolerância a falhas (sucesso, falha SMTP simulada, descadastrado) e cálculo de métricas.
-- `tests/test_unsubscribe.py`: Descadastro via token público, alteração para `DESCADASTRADO` e bloqueio de novos envios.
-- `tests/test_attachments.py`: Upload, armazenamento de relacionamentos de anexos e repasse de arquivos para o disparo via multipart MIME.
-- `tests/test_web_integration.py`: Jornada web completa e proteção de rotas HTTP contra acessos cruzados.
+### Escopo dos Testes:
+* `tests/test_presets.py`: Catálogo de templates prontos, compilação de HTML semântico, aplicação de cores e estilos.
+* `tests/test_improvements.py`: Sanitização XSS em templates, sanitização de anexos, invalidação de sessões na troca de senha e importação rápida de CSV.
+* `tests/test_attachments.py`: Upload de múltiplos anexos, armazenamento isolado e disparo multipart MIME.
+* `tests/test_campaigns.py`: Execução de campanhas por lote, tolerância a falhas e cálculo de métricas.
+* `tests/test_isolation.py`: Isolamento rigoroso multi-tenant entre usuários em todas as entidades.
+* `tests/test_templates.py`: Interpolação de variáveis dinâmicas e fallbacks.
+* `tests/test_auth.py`: Fluxos de registro, login, cookies HMAC e rejeição de tokens adulterados.
+* `tests/test_validation.py`: Validação de sintaxe RFC 5322 e ciclo de vida de contatos.
+* `tests/test_unsubscribe.py`: Descadastro público por token e bloqueio automático em novos envios.
+* `tests/test_web_integration.py`: Jornada web completa e proteção de rotas privadas.
 
 ---
 
-## 🚀 7. Guia de Execução em Produção
+## 🗺️ 7. Roadmap & Próximos Passos
 
-Para implantação em servidores de produção (Linux / Docker / Cloud):
-
-### 1. Variáveis de Ambiente Críticas
-No arquivo `.env` de produção:
-```env
-APP_ENV=production
-DEBUG=False
-SECRET_KEY=sua-chave-secreta-longa-min-64-caracteres
-ENCRYPTION_KEY=sua-chave-fernet-base64-gerada
-APP_BASE_URL=https://seudominio.com
-DATABASE_URL=mysql+pymysql://usuario:senha@localhost:3306/newsletter_db
-```
-
-### 2. Gunicorn / Uvicorn Workers
-```bash
-pip install gunicorn
-gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
-```
-
-### 3. Proxy Reverso (Nginx)
-Configure Nginx para redirecionar tráfego HTTPS para a porta 8000 com cabeçalhos `X-Forwarded-For` e `X-Forwarded-Proto`.
+- [x] Construtor Visual de Templates Sem Código (*Zero HTML*)
+- [x] Catálogo de Presets Prontos & Personalização de Cores
+- [x] Prévia Fixa ao Vivo com Alternador Desktop / Mobile
+- [x] Nova Identidade Visual SaaS Profissional
+- [x] Suporte a Múltiplos Anexos por Campanha
+- [ ] Fila Assíncrona de Disparos em Segundo Plano (Celery / Redis)
+- [ ] Métricas de Abertura (Pixel 1x1) e Redirecionamento de Cliques
+- [ ] Agendamento Programado de Campanhas (Data e Hora)
+- [ ] Segmentação Avançada de Contatos por Tags (`VIP`, `Lead`, `Cliente`)
+- [ ] Provedores Nativos em Nuvem (Amazon SES, SendGrid, Mailgun via API REST)
 
 ---
 
-## 🗺️ 8. Roadmap e Funcionalidades Futuras
+## 📄 Licença
 
-- [ ] **Fila Assíncrona de Disparo**: Integração com Celery / Redis para envio em background em grandes volumes.
-- [ ] **Editor Visual Drag & Drop**: Edição WYSIWYG de blocos sem necessidade de HTML.
-- [ ] **Métricas Avançadas**: Pixel de rastreamento de abertura e redirecionamento de cliques.
-- [ ] **Provedores Nativos na Nuvem**: Plugins para Amazon SES, SendGrid e Mailgun via API REST.
-- [ ] **Agendamento de Campanhas**: Disparo programado por data e hora.
-- [ ] **Segmentação por Tags**: Envio filtrado por tags (`VIP`, `Lead`, `Cliente`).
+Distribuído sob a licença MIT. Consulte `LICENSE` para mais informações.

@@ -220,6 +220,10 @@ class ContactService:
             result["errors"].append("Coluna de e-mail ('email' ou 'e-mail') não encontrada no cabeçalho do CSV.")
             return result
 
+        # Busca conjunto de e-mails existentes do perfil para busca O(1)
+        existing_emails = self.contact_repo.get_all_emails_set(user_id)
+        contacts_to_create = []
+
         row_num = 1
         for row in reader:
             row_num += 1
@@ -240,22 +244,28 @@ class ContactService:
                 result["errors"].append(f"Linha {row_num}: E-mail '{raw_email}' inválido.")
                 continue
 
-            # Verificar duplicidade
-            existing = self.contact_repo.get_by_email(user_id, clean_email)
-            if existing:
+            # Verificar duplicidade em tempo O(1)
+            if clean_email in existing_emails:
                 result["duplicates"] += 1
                 continue
 
-            # Inserir contato ativo
-            self.contact_repo.create(
-                user_id=user_id,
-                name=raw_name,
-                email=clean_email,
-                company=raw_company,
-                phone=raw_phone,
-                status=ContactStatus.ATIVO
+            # Adiciona ao set para evitar duplicatas dentro do próprio CSV
+            existing_emails.add(clean_email)
+
+            contacts_to_create.append(
+                Contact(
+                    user_id=user_id,
+                    name=raw_name,
+                    email=clean_email,
+                    company=raw_company,
+                    phone=raw_phone,
+                    status=ContactStatus.ATIVO
+                )
             )
-            result["imported"] += 1
+
+        if contacts_to_create:
+            self.contact_repo.bulk_create(contacts_to_create)
+            result["imported"] = len(contacts_to_create)
 
         self.log_repo.create_log(
             user_id=user_id,
