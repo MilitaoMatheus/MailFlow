@@ -237,7 +237,18 @@ def _bg_send_campaign(campaign_id: int, user_id: int, base_url: str):
         user_bg = db_bg.query(User).filter(User.id == user_id).first()
         if user_bg:
             service = CampaignService(db_bg)
-            service.send_campaign(user_id=user_id, campaign_id=campaign_id, user=user_bg, base_url=base_url)
+            ok, msg, _ = service.send_campaign(user_id=user_id, campaign_id=campaign_id, user=user_bg, base_url=base_url)
+            if not ok:
+                print(f"[MailFlow] Aviso no envio da campanha {campaign_id}: {msg}")
+    except Exception as e:
+        print(f"[MailFlow] Erro fatal no envio em segundo plano da campanha {campaign_id}: {str(e)}")
+        try:
+            camp = db_bg.query(Campaign).filter(Campaign.id == campaign_id).first()
+            if camp:
+                camp.status = CampaignStatus.FALHA
+                db_bg.commit()
+        except Exception:
+            pass
     finally:
         db_bg.close()
 

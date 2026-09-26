@@ -182,7 +182,7 @@ No menu **Configurações SMTP**, utilize os presets rápidos ou configure manua
 
 ## 🧪 6. Testes Automatizados
 
-O MailFlow possui uma suíte com **28 testes automatizados com 100% de aprovação**:
+O MailFlow possui uma suíte com **29 testes automatizados com 100% de aprovação**:
 
 ```bash
 python -m pytest -v
@@ -193,7 +193,7 @@ python -m pytest -v
 * `tests/test_presets.py`: Catálogo de templates prontos, compilação de HTML semântico, aplicação de cores e estilos.
 * `tests/test_improvements.py`: Sanitização XSS em templates, sanitização de anexos, invalidação de sessões na troca de senha e importação rápida de CSV.
 * `tests/test_attachments.py`: Upload de múltiplos anexos, armazenamento isolado e disparo multipart MIME.
-* `tests/test_campaigns.py`: Execução de campanhas por lote, tolerância a falhas e cálculo de métricas.
+* `tests/test_campaigns.py`: Execução de campanhas por lote, disparo em segundo plano via endpoint HTTP com tolerância a falhas e cálculo de métricas.
 * `tests/test_isolation.py`: Isolamento rigoroso multi-tenant entre usuários em todas as entidades.
 * `tests/test_templates.py`: Interpolação de variáveis dinâmicas e fallbacks.
 * `tests/test_auth.py`: Fluxos de registro, login, cookies HMAC e rejeição de tokens adulterados.

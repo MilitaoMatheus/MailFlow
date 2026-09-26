@@ -170,21 +170,40 @@ class CampaignService:
         if not campaign:
             return False, "Campanha não encontrada.", {}
 
-        if campaign.status == CampaignStatus.PROCESSANDO:
-            return False, "Esta campanha já está em processamento.", {}
-
         template = self.template_repo.get_by_id(user_id, campaign.template_id)
         if not template:
+            self.campaign_repo.update_campaign_progress(
+                campaign_id=campaign.id,
+                status=CampaignStatus.FALHA,
+                total_sent=0,
+                total_failed=0,
+                total_invalid=0,
+                total_ignored=0
+            )
             return False, "Template associado à campanha não foi encontrado.", {}
 
         # Obter provedor de e-mail configurado para o perfil
         provider, err = self.email_service.get_provider(user_id)
         if not provider:
+            self.campaign_repo.update_campaign_progress(
+                campaign_id=campaign.id,
+                status=CampaignStatus.FALHA,
+                total_sent=0,
+                total_failed=0,
+                total_invalid=0,
+                total_ignored=0
+            )
+            self.log_repo.create_log(
+                user_id=user_id,
+                action="CAMPANHA_ERRO",
+                description=f"Configuração de envio indisponível para campanha '{campaign.name}': {err}"
+            )
             return False, f"Configuração de envio indisponível: {err}", {}
 
-        # Atualizar status para PROCESSANDO
-        campaign.status = CampaignStatus.PROCESSANDO
-        self.db.commit()
+        # Garantir status PROCESSANDO no banco
+        if campaign.status != CampaignStatus.PROCESSANDO:
+            campaign.status = CampaignStatus.PROCESSANDO
+            self.db.commit()
 
         # Obter lista de anexos da campanha
         attachments_list = []
