@@ -95,6 +95,13 @@ A aplicação segue separação em camadas bem definidas e desacopladas:
   * Registro detalhado de cada resultado: `ENVIADO`, `FALHA`, `INVALIDO`, `IGNORADO`.
 * **Relatório Analítico em Tempo Real**:
   * Contadores em cards semânticos, taxa percentual de sucesso e visualização individual de logs de cada envio.
+* **👁️ Rastreamento de Abertura em Tempo Real (Pixel 1x1)**:
+  * Injeção automática de pixel transparente (`GET /track/open/{open_token}.png`) com token seguro exclusivo de 32 bytes por contato.
+  * Headers estritos anti-cache (`no-cache, no-store, must-revalidate`).
+  * Contabilização de primeira abertura com timestamp (`opened_at`), contador acumulado de aberturas (`open_count`) e métrica de taxa de abertura (`open_rate`) exibida no painel da campanha e no dashboard principal.
+* **🧪 Disparo de Prova / Envio de Teste**:
+  * Validação prévia de layout com envio instantâneo para um e-mail informado pelo usuário antes do disparo em massa.
+  * Prefixo automático `[TESTE] ` no assunto, substituição de variáveis com dados simulados e inclusão de todos os anexos reais da campanha.
 
 ### 👥 3.3 Gestão de Contatos & Importação de Alta Performance
 * CRUD completo com status: `ATIVO`, `INATIVO`, `INVALIDO`, `DESCADASTRADO`.
@@ -175,13 +182,14 @@ No menu **Configurações SMTP**, utilize os presets rápidos ou configure manua
 
 ## 🧪 6. Testes Automatizados
 
-O MailFlow possui uma suíte com **25 testes automatizados com 100% de aprovação**:
+O MailFlow possui uma suíte com **28 testes automatizados com 100% de aprovação**:
 
 ```bash
 python -m pytest -v
 ```
 
 ### Escopo dos Testes:
+* `tests/test_tracking_and_test_send.py`: Injeção de pixel de rastreamento 1x1, rota pública de rastreamento com headers anti-cache, disparo de e-mail de prova (teste) e isolamento multi-tenant de disparo de teste.
 * `tests/test_presets.py`: Catálogo de templates prontos, compilação de HTML semântico, aplicação de cores e estilos.
 * `tests/test_improvements.py`: Sanitização XSS em templates, sanitização de anexos, invalidação de sessões na troca de senha e importação rápida de CSV.
 * `tests/test_attachments.py`: Upload de múltiplos anexos, armazenamento isolado e disparo multipart MIME.
@@ -202,8 +210,10 @@ python -m pytest -v
 - [x] Prévia Fixa ao Vivo com Alternador Desktop / Mobile
 - [x] Nova Identidade Visual SaaS Profissional
 - [x] Suporte a Múltiplos Anexos por Campanha
+- [x] Rastreamento de Abertura (Pixel 1x1 Transparente & Taxa de Abertura)
+- [x] Disparo de Prova / Envio de Teste com Simulação de Variáveis
 - [ ] Fila Assíncrona de Disparos em Segundo Plano (Celery / Redis)
-- [ ] Métricas de Abertura (Pixel 1x1) e Redirecionamento de Cliques
+- [ ] Redirecionamento e Rastreamento de Cliques em Links
 - [ ] Agendamento Programado de Campanhas (Data e Hora)
 - [ ] Segmentação Avançada de Contatos por Tags (`VIP`, `Lead`, `Cliente`)
 - [ ] Provedores Nativos em Nuvem (Amazon SES, SendGrid, Mailgun via API REST)

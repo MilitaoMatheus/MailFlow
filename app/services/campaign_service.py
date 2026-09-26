@@ -57,10 +57,15 @@ class CampaignService:
         failed = campaign.total_failed
         invalid = campaign.total_invalid
         ignored = campaign.total_ignored
+        opened = campaign.total_opened or 0
         
         success_rate = 0.0
         if (sent + failed + invalid) > 0:
             success_rate = round((sent / (sent + failed + invalid)) * 100, 1)
+
+        open_rate = 0.0
+        if sent > 0:
+            open_rate = round((opened / sent) * 100, 1)
 
         return {
             "campaign": campaign,
@@ -70,6 +75,8 @@ class CampaignService:
             "failed": failed,
             "invalid": invalid,
             "ignored": ignored,
+            "opened": opened,
+            "open_rate": open_rate,
             "success_rate": success_rate,
             "sent_at": campaign.sent_at.strftime("%d/%m/%Y %H:%M:%S") if campaign.sent_at else "Não disparada"
         }
@@ -260,6 +267,15 @@ class CampaignService:
                     unsubscribe_url=unsubscribe_url
                 )
 
+                # Injetar pixel invisível de rastreamento de abertura (Open Tracking)
+                if getattr(r, "open_token", None):
+                    tracking_url = f"{base_url}/track/open/{r.open_token}.png"
+                    tracking_tag = f'<img src="{tracking_url}" width="1" height="1" style="display:none !important; max-height:0px; max-width:0px; opacity:0; border:0;" alt="" />'
+                    if "</body>" in html_body:
+                        html_body = html_body.replace("</body>", f"{tracking_tag}</body>")
+                    else:
+                        html_body += tracking_tag
+
                 # 5. Realizar o disparo individual via Provider
                 send_res = provider.send_email(
                     to_email=clean_email,
@@ -344,3 +360,80 @@ class CampaignService:
         }
 
         return True, "Campanha processada com sucesso!", report
+
+    def send_test_email(
+        self,
+        user_id: int,
+        campaign_id: int,
+        test_email: str,
+        user: User,
+        base_url: str = settings.APP_BASE_URL
+    ) -> Tuple[bool, str]:
+        """
+        Envia um e-mail de prova/teste individual para uma caixa de entrada real,
+        com prefixo [TESTE] no assunto, interpolação simulada e os anexos da campanha.
+        """
+        # 1. Validar e-mail de destino
+        is_valid, clean_email = SecurityService.validate_email_syntax(test_email)
+        if not is_valid:
+            return False, f"O e-mail de teste '{test_email}' possui formato inválido."
+
+        # 2. Carregar a campanha
+        campaign = self.campaign_repo.get_by_id(user_id, campaign_id)
+        if not campaign:
+            return False, "Campanha não encontrada ou não pertence ao seu perfil."
+
+        # 3. Carregar o template
+        template = self.template_repo.get_by_id(user_id, campaign.template_id)
+        if not template:
+            return False, "Template associado à campanha não foi encontrado."
+
+        # 4. Obter provedor SMTP
+        provider, err = self.email_service.get_provider(user_id)
+        if not provider:
+            return False, f"Servidor SMTP não configurado ou indisponível: {err}"
+
+        # 5. Lista de anexos reais da campanha
+        attachments_list = []
+        if campaign.attachments:
+            for att in campaign.attachments:
+                attachments_list.append({
+                    "path": att.file_path,
+                    "name": att.file_name,
+                    "type": att.content_type
+                })
+
+        # 6. Renderizar conteúdo simulado de teste
+        test_unsubscribe_url = f"{base_url}/unsubscribe?token=preview_mode"
+        html_body = self.template_service.render_content(
+            header=template.header,
+            body=template.body,
+            footer=template.footer,
+            contact_name="Destinatário de Teste",
+            contact_email=clean_email,
+            company="Sua Empresa (Exemplo)",
+            profile_name=user.name,
+            unsubscribe_url=test_unsubscribe_url
+        )
+
+        test_subject = f"[TESTE] {campaign.subject}"
+
+        # 7. Disparo via provedor
+        send_res = provider.send_email(
+            to_email=clean_email,
+            to_name="Destinatário de Teste",
+            subject=test_subject,
+            html_content=html_body,
+            unsubscribe_url=test_unsubscribe_url,
+            attachments=attachments_list
+        )
+
+        if send_res.success:
+            self.log_repo.create_log(
+                user_id=user_id,
+                action="TESTE_ENVIADO",
+                description=f"E-mail de prova da campanha '{campaign.name}' enviado para '{clean_email}'."
+            )
+            return True, f"E-mail de teste enviado com sucesso para {clean_email}!"
+        else:
+            return False, f"Falha ao enviar e-mail de teste: {send_res.error_message or 'Erro desconhecido do servidor SMTP.'}"

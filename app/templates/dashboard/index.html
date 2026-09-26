@@ -55,7 +55,7 @@
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">E-mails Enviados</p>
                 <h3 class="text-2xl font-bold text-emerald-600 mt-1">{{ metrics.total_sent }}</h3>
-                <span class="text-xs text-slate-400 mt-1 inline-block">{{ metrics.total_failed }} falhas registradas</span>
+                <span class="text-xs text-slate-400 mt-1 inline-block"><strong>{{ metrics.total_opened }}</strong> aberturas ({{ metrics.open_rate }}%) &bull; {{ metrics.total_failed }} falhas</span>
             </div>
             <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
                 <i data-lucide="check-circle" class="w-6 h-6"></i>

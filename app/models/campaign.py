@@ -1,3 +1,4 @@
+import secrets
 from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
@@ -19,6 +20,10 @@ class CampaignContactStatus:
     IGNORADO = "IGNORADO"
 
 
+def generate_tracking_token():
+    return secrets.token_urlsafe(32)
+
+
 class Campaign(Base):
     __tablename__ = "campaigns"
 
@@ -35,6 +40,7 @@ class Campaign(Base):
     total_failed = Column(Integer, default=0, nullable=False)
     total_invalid = Column(Integer, default=0, nullable=False)
     total_ignored = Column(Integer, default=0, nullable=False)
+    total_opened = Column(Integer, default=0, nullable=False)
 
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     sent_at = Column(DateTime, nullable=True)
@@ -60,6 +66,10 @@ class CampaignContact(Base):
     status = Column(String(20), default=CampaignContactStatus.PENDENTE, nullable=False, index=True)
     error_message = Column(Text, nullable=True)
     sent_at = Column(DateTime, nullable=True)
+    
+    open_token = Column(String(64), unique=True, index=True, default=generate_tracking_token, nullable=False)
+    opened_at = Column(DateTime, nullable=True)
+    open_count = Column(Integer, default=0, nullable=False)
 
     campaign = relationship("Campaign", back_populates="recipients")
     contact = relationship("Contact", back_populates="campaign_contacts")

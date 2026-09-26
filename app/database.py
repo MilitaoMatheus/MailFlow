@@ -39,16 +39,44 @@ def init_db():
     import app.models  # noqa: F401
     Base.metadata.create_all(bind=engine)
 
-    # Migração leve para garantir coluna token_version em bancos existentes
+    # Migrações leves para garantir colunas novas em bancos existentes
     try:
         from sqlalchemy import text
+        import secrets
         with engine.connect() as conn:
-            # Verifica colunas da tabela users
             if settings.DATABASE_URL.startswith("sqlite"):
-                cols = conn.execute(text("PRAGMA table_info(users)")).fetchall()
-                col_names = [c[1] for c in cols]
-                if "token_version" not in col_names and len(col_names) > 0:
+                # 1. Verifica colunas da tabela users
+                cols_users = [c[1] for c in conn.execute(text("PRAGMA table_info(users)")).fetchall()]
+                if "token_version" not in cols_users and len(cols_users) > 0:
                     conn.execute(text("ALTER TABLE users ADD COLUMN token_version INTEGER DEFAULT 1 NOT NULL"))
+                    conn.commit()
+
+                # 2. Verifica colunas da tabela campaigns
+                cols_camp = [c[1] for c in conn.execute(text("PRAGMA table_info(campaigns)")).fetchall()]
+                if "total_opened" not in cols_camp and len(cols_camp) > 0:
+                    conn.execute(text("ALTER TABLE campaigns ADD COLUMN total_opened INTEGER DEFAULT 0 NOT NULL"))
+                    conn.commit()
+
+                # 3. Verifica colunas da tabela campaign_contacts
+                cols_cc = [c[1] for c in conn.execute(text("PRAGMA table_info(campaign_contacts)")).fetchall()]
+                if "open_token" not in cols_cc and len(cols_cc) > 0:
+                    conn.execute(text("ALTER TABLE campaign_contacts ADD COLUMN open_token VARCHAR(64)"))
+                    conn.commit()
+                    # Gerar tokens únicos para registros existentes
+                    rows = conn.execute(text("SELECT id FROM campaign_contacts WHERE open_token IS NULL")).fetchall()
+                    for r in rows:
+                        tok = secrets.token_urlsafe(32)
+                        conn.execute(text("UPDATE campaign_contacts SET open_token = :tok WHERE id = :cid"), {"tok": tok, "cid": r[0]})
+                    conn.commit()
+                    conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_campaign_contacts_open_token ON campaign_contacts (open_token)"))
+                    conn.commit()
+
+                if "opened_at" not in cols_cc and len(cols_cc) > 0:
+                    conn.execute(text("ALTER TABLE campaign_contacts ADD COLUMN opened_at DATETIME"))
+                    conn.commit()
+
+                if "open_count" not in cols_cc and len(cols_cc) > 0:
+                    conn.execute(text("ALTER TABLE campaign_contacts ADD COLUMN open_count INTEGER DEFAULT 0 NOT NULL"))
                     conn.commit()
     except Exception:
         pass

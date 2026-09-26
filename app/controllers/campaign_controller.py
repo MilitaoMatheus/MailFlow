@@ -213,6 +213,9 @@ def view_campaign_report(
 
     smtp_account = email_service.get_smtp_account(current_user.id)
 
+    test_success = request.query_params.get("test_success")
+    test_error = request.query_params.get("test_error")
+
     return templates.TemplateResponse(
         request=request,
         name="campaigns/show.html",
@@ -220,6 +223,8 @@ def view_campaign_report(
             "user": current_user,
             "report": report_data,
             "smtp_account": smtp_account,
+            "test_success": test_success,
+            "test_error": test_error,
             "active_menu": "campaigns"
         }
     )
@@ -235,6 +240,32 @@ def _bg_send_campaign(campaign_id: int, user_id: int, base_url: str):
             service.send_campaign(user_id=user_id, campaign_id=campaign_id, user=user_bg, base_url=base_url)
     finally:
         db_bg.close()
+
+
+@router.post("/{campaign_id}/test-send", response_class=HTMLResponse)
+def execute_test_send(
+    request: Request,
+    campaign_id: int,
+    test_email: str = Form(...),
+    current_user: User = Depends(require_auth_user),
+    db: Session = Depends(get_db)
+):
+    import urllib.parse
+    campaign_service = CampaignService(db)
+    base_url = str(request.base_url).rstrip("/")
+    success, msg = campaign_service.send_test_email(
+        user_id=current_user.id,
+        campaign_id=campaign_id,
+        test_email=test_email,
+        user=current_user,
+        base_url=base_url
+    )
+
+    param = "test_success" if success else "test_error"
+    return RedirectResponse(
+        url=f"/campaigns/{campaign_id}?{param}={urllib.parse.quote(msg)}",
+        status_code=status.HTTP_303_SEE_OTHER
+    )
 
 
 @router.post("/{campaign_id}/send", response_class=HTMLResponse)

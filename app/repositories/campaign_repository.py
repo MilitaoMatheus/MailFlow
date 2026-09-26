@@ -138,21 +138,27 @@ class CampaignRepository(BaseRepository):
         total_campaigns = self.count_campaigns(user_id)
         total_contacts = self.db.query(Contact).filter(Contact.user_id == user_id).count()
         
-        # Agregação de enviados e falhas
+        # Agregação de enviados, falhas e aberturas
         agg = self.db.query(
             func.sum(Campaign.total_sent).label("sent"),
             func.sum(Campaign.total_failed).label("failed"),
-            func.sum(Campaign.total_invalid).label("invalid")
+            func.sum(Campaign.total_invalid).label("invalid"),
+            func.sum(Campaign.total_opened).label("opened")
         ).filter(Campaign.user_id == user_id).first()
 
         total_sent = agg.sent or 0 if agg else 0
         total_failed = agg.failed or 0 if agg else 0
         total_invalid = agg.invalid or 0 if agg else 0
+        total_opened = agg.opened or 0 if agg else 0
         total_attempts = total_sent + total_failed + total_invalid
 
         success_rate = 0.0
         if total_attempts > 0:
             success_rate = round((total_sent / total_attempts) * 100, 1)
+
+        open_rate = 0.0
+        if total_sent > 0:
+            open_rate = round((total_opened / total_sent) * 100, 1)
 
         recent_campaigns = self.list_campaigns(user_id, limit=5)
 
@@ -162,6 +168,8 @@ class CampaignRepository(BaseRepository):
             "total_sent": total_sent,
             "total_failed": total_failed,
             "total_invalid": total_invalid,
+            "total_opened": total_opened,
+            "open_rate": open_rate,
             "success_rate": success_rate,
             "recent_campaigns": recent_campaigns
         }
